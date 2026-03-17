@@ -1,0 +1,6 @@
+# Visual Studio geçici dosyaları
+.vs/
+[Bb]in/
+[Obj]/
+*.user
+*.suo

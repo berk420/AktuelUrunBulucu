@@ -1,0 +1,6 @@
+@AktuelUrunBulucu_HostAddress = http://localhost:5012
+
+GET {{AktuelUrunBulucu_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

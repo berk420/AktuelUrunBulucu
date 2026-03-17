@@ -1,0 +1,4 @@
+/* Leaflet harita z-index fix */
+.leaflet-container {
+  z-index: 0;
+}

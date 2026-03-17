@@ -1,0 +1,178 @@
+Sen .NET 8 ve React konusunda uzman bir senior full-stack developer'sın.
+Aşağıdaki spesifikasyonu eksiksiz, çalışır şekilde geliştir.
+Overengineering yapma, belirtilen mimariyi birebir uygula.
+
+## Proje Adı
+Aktüel Ürün Bulucu
+
+---
+
+## Genel Akış
+1. Kullanıcı ürün adı yazar (örn: "çamaşır makinesi", "bisiklet")
+2. Backend veritabanında tam eşleşme + LIKE ile benzer ürün arar
+3a. Ürün bulunursa → o ürünün bulunduğu marketlerin konumlarını haritada göster
+3b. Ürün bulunamazsa → "Aradığınız ürün zincir marketlerde bulunmamaktadır,
+    geldiği taktirde size mail atılacaktır." mesajı göster
+4. Her arama kullanıcının IP'si ile birlikte veritabanına kaydedilir
+
+## Kullanıcı Girişi
+- Kullanıcı girişi YOK
+- Kullanıcı takibi sadece IP üzerinden
+- search_logs tablosu: id, ip_address, searched_product, searched_at
+
+---
+
+## Backend — ASP.NET Core Web API (.NET 8)
+
+### Mimari: 3 Katmanlı
+Aktuel.API          → Minimal API endpoints, DI kayıtları
+Aktuel.BLL          → Business logic, arama ve eşleştirme servisleri
+Aktuel.DAL          → Repository'ler, EF Core DbContext, entity'ler
+
+### Veritabanı — PostgreSQL (Npgsql + EF Core)
+- EF Core provider: Npgsql.EntityFrameworkCore.PostgreSQL
+- Connection string appsettings.json'da:
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=aktueldb;Username=aktuel_user;Password=aktuel_pass123"
+  }
+- Docker ortamında connection string environment variable'dan okunacak,
+  appsettings.json fallback olacak:
+  builder.Configuration.GetConnectionString("DefaultConnection")
+- Tablo isimleri snake_case olsun (PostgreSQL convention)
+  modelBuilder.HasDefaultSchema("public") ile
+
+### Tablolar
+
+stores (marketler)
+- id (int, PK)
+- name (string) → örn: "Migros Kızılay"
+- chain (string) → örn: "Migros", "A101", "BİM", "Şok"
+- latitude (double)
+- longitude (double)
+- address (string)
+
+products (ürünler)
+- id (int, PK)
+- name (string) → örn: "Çamaşır Makinesi Samsung 8kg"
+- category (string)
+- store_id (int, FK → stores)
+
+search_logs (arama geçmişi)
+- id (int, PK)
+- ip_address (string)
+- searched_product (string)
+- searched_at (datetime)
+
+### Mock Data (Seed - gerçekçi Ankara verisi)
+- 10 market ekle: Migros, A101, BİM, Şok, CarrefourSA zincirlerinden
+  gerçek Ankara koordinatları kullan (Kızılay, Çankaya, Keçiören vb.)
+- 30 aktüel ürün ekle, farklı marketlere dağıt
+  (beyaz eşya, bisiklet, çadır, barbekü gibi mevsimsel aktüel ürünler)
+- Kullanıcı konumu mock: 39.9208° N, 32.8541° E (Ankara Kızılay)
+
+### Endpoints (Minimal API)
+
+GET /api/search?query={productName}&ip={ipAddress}
+→ Ürünü arar, search_logs'a kaydeder
+→ Bulunursa: eşleşen ürünler + market konumları döner
+→ Bulunmazsa: found: false döner
+
+Response şeması:
+{
+  found: bool,
+  matchedProducts: [
+    {
+      productId, productName, category,
+      store: { storeId, name, chain, latitude, longitude, address }
+    }
+  ]
+}
+
+GET /api/stores → tüm marketleri döndür (harita ilk yüklenişinde)
+
+### BLL Kuralları
+- Arama: önce tam eşleşme, sonra Contains ile benzer ürün
+- Büyük/küçük harf duyarsız arama (ToLower)
+- IP adresi alımı: X-Forwarded-For header, yoksa HttpContext.Connection.RemoteIpAddress
+- Her aramayı search_logs'a kaydet (bulunsun ya da bulunmasın)
+
+### Teknik
+- CORS: React dev server için açık (http://localhost:5173)
+- Backend http://localhost:5012 adresinde çalışacak
+- appsettings.json'da: "Urls": "http://localhost:5012"
+- Swagger ekle
+- EF Core migration hazır olsun
+- Program.cs başlangıçta otomatik migration uygulasın:
+  using (var scope = app.Services.CreateScope())
+  {
+      var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+      db.Database.Migrate();
+  }
+
+---
+
+## Frontend — React + Vite
+npm run dev → http://localhost:5173/ adresinde çalışır
+
+### UI Kütüphanesi
+Kendo UI for React kullan (@progress/kendo-react-*)
+Kendo bileşenlerini kullan:
+
+- Input → ürün arama kutusu
+- Button → arama butonu
+- Notification → "ürün bulunamadı" mesajı
+- Card → market detay kartları
+- Loader → yüklenme durumu
+
+### Harita
+Leaflet.js (react-leaflet) kullan — OpenStreetMap tile'ları ile
+API key gerektirmez
+
+### Bileşen Yapısı
+App.jsx
+├── SearchBar.jsx        → Kendo Input + Button
+├── Map.jsx              → react-leaflet harita, market marker'ları
+├── StoreList.jsx        → Kendo Card listesi, arama sonuçları
+└── NotFoundMessage.jsx  → Kendo Notification, bulunamadı mesajı
+
+### Uygulama Akışı
+1. Sayfa açılır → tüm marketler haritada gösterilir (gri marker)
+2. Kullanıcı ürün yazar, ara'ya basar
+3. API'ye istek gider (kullanıcı IP'si fetch ile alınır: api.ipify.org)
+4. Ürün bulunursa → o ürünün marketi renkli marker ile vurgulanır,
+   sağda Kendo Card listesi güncellenir
+5. Bulunamadı → Kendo Notification ile mesaj gösterilir
+
+### Teknik
+- React 18 + Vite
+- .env: VITE_API_URL=http://localhost:5012
+- Tailwind CSS sadece layout için (Kendo component stilleri korunsun)
+- useState yeterli, Redux/Zustand kullanma
+
+---
+
+## Kesinlikle Yapma
+- Authentication, JWT, kullanıcı kaydı
+- Unit test
+- Redux veya başka state management
+- TODO veya placeholder kod — her satır çalışır olmalı
+- Kendo dışında component library ekleme
+- SQLite veya SQL Server — sadece PostgreSQL kullan
+
+---
+
+## Çıktı Sırası (bu sırayı takip et)
+1. Klasör yapısı (solution ağacı)
+2. docker-compose.yml (proje kökünde, sadece PostgreSQL servisi)
+3. Aktuel.DAL — entity'ler, DbContext, seed, repository'ler
+4. Aktuel.BLL — servisler, interface'ler
+5. Aktuel.API — program.cs, endpoints
+6. Frontend — tüm bileşenler
+7. Çalıştırma adımları:
+   - PostgreSQL'i başlat: docker-compose up -d postgres
+   - Migration uygula: dotnet ef database update
+   - Backend başlat: dotnet run (http://localhost:5012)
+   - Frontend başlat: npm run dev (http://localhost:5173)
+
+Kodlamaya başlamadan önce mimariyi ve dosya yapısını
+3-4 cümleyle özetle, onay beklemeden devam et.
