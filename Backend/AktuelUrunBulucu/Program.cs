@@ -14,9 +14,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ISearchLogRepository, SearchLogRepository>();
 builder.Services.AddScoped<IUserCoordinateRepository, UserCoordinateRepository>();
+builder.Services.AddScoped<INotificationRequestRepository, NotificationRequestRepository>();
 
 // Services
 builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<IMailService, MailService>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -46,5 +48,6 @@ app.UseCors();
 
 app.MapSearchEndpoints();
 app.MapLocationEndpoints();
+app.MapNotificationEndpoints();
 
 app.Run();

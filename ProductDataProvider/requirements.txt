@@ -1,0 +1,13 @@
+# Core (always required)
+psycopg2-binary>=2.9
+flask>=3.0
+
+# Claude Vision method
+anthropic>=0.40.0
+
+# EasyOCR method (uncomment if needed)
+# easyocr>=1.7
+
+# Tesseract method (uncomment if needed)
+# pytesseract>=0.3
+# Pillow>=10.0

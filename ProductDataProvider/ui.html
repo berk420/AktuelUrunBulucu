@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aktüel Ürün Yükleyici</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f0f13;
+      color: #e2e2e2;
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: #fff;
+    }
+
+    /* ---- Store grid ---- */
+    .stores {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      max-width: 1100px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .store-card {
+      background: #1a1a24;
+      border: 1.5px solid #2e2e42;
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .store-label {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #a78bfa;
+    }
+
+    /* ---- Drop zone ---- */
+    .drop-zone {
+      border: 2px dashed #3d3d58;
+      border-radius: 10px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+      overflow: hidden;
+      color: #555;
+      font-size: .82rem;
+      text-align: center;
+      padding: 1rem;
+      user-select: none;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: #a78bfa; background: #1e1a33; }
+    .drop-zone.has-image { border-color: #4ade80; border-style: solid; }
+
+    .drop-zone img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 6px;
+      object-fit: contain;
+      display: none;
+    }
+    .drop-zone.has-image img { display: block; }
+    .drop-zone.has-image .hint { display: none; }
+
+    .drop-icon { font-size: 2rem; line-height: 1; }
+
+    .clear-btn {
+      display: none;
+      position: absolute;
+      top: 6px; right: 8px;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 24px; height: 24px;
+      font-size: .75rem;
+      cursor: pointer;
+      line-height: 24px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .drop-zone.has-image .clear-btn { display: block; }
+
+    /* ---- Date input ---- */
+    .date-label { font-size: .78rem; color: #888; display: block; margin-bottom: .25rem; }
+
+    input[type="date"] {
+      width: 100%;
+      background: #12121c;
+      border: 1.5px solid #2e2e42;
+      border-radius: 8px;
+      color: #e2e2e2;
+      padding: .5rem .75rem;
+      font-size: .9rem;
+      outline: none;
+    }
+    input[type="date"]:focus { border-color: #a78bfa; }
+
+    /* ---- Bottom toolbar ---- */
+    .toolbar {
+      max-width: 1100px;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    select {
+      background: #1a1a24;
+      border: 1.5px solid #2e2e42;
+      border-radius: 8px;
+      color: #e2e2e2;
+      padding: .5rem .75rem;
+      font-size: .9rem;
+      outline: none;
+      cursor: pointer;
+    }
+    select:focus { border-color: #a78bfa; }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: .6rem 1.6rem;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .btn-extract { background: #7c3aed; color: #fff; margin-left: auto; }
+    .btn-extract:hover:not(:disabled) { background: #6d28d9; }
+
+    .btn-save { background: #16a34a; color: #fff; }
+    .btn-save:hover:not(:disabled) { background: #15803d; }
+
+    /* ---- Results ---- */
+    #results { max-width: 1100px; margin: 0 auto; }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .result-card {
+      background: #1a1a24;
+      border: 1.5px solid #2e2e42;
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+    }
+
+    .result-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: .75rem;
+    }
+
+    .result-card-header strong { color: #a78bfa; font-size: 1rem; }
+
+    .badge {
+      border-radius: 20px;
+      padding: .15rem .6rem;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .badge-green  { background: #4ade80; color: #0a2010; }
+    .badge-gray   { background: #444; color: #ccc; }
+    .badge-saved  { background: #22c55e; color: #052010; }
+
+    .product-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .3rem;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .product-list::-webkit-scrollbar { width: 4px; }
+    .product-list::-webkit-scrollbar-thumb { background: #3d3d58; border-radius: 4px; }
+
+    .product-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #12121c;
+      border-radius: 6px;
+      padding: .35rem .6rem;
+      font-size: .82rem;
+      gap: .5rem;
+    }
+
+    .product-name { flex: 1; }
+    .product-cat { color: #555; font-size: .75rem; white-space: nowrap; }
+
+    .save-bar {
+      display: none;
+      max-width: 1100px;
+      margin: 0 auto 1.5rem;
+      background: #1a2a1a;
+      border: 1.5px solid #16a34a44;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .save-bar.visible { display: flex; }
+
+    .save-bar-text { color: #86efac; font-size: .95rem; }
+
+    .error-box {
+      max-width: 1100px;
+      margin: 0 auto 1rem;
+      background: #2d1010;
+      border: 1.5px solid #7f1d1d;
+      border-radius: 10px;
+      padding: .9rem 1.1rem;
+      color: #fca5a5;
+      font-size: .85rem;
+      white-space: pre-wrap;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #ffffff33;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: .4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 750px) {
+      .stores, .result-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>🛒 Aktüel Ürün Yükleyici</h1>
+
+<!-- Store Cards -->
+<div class="stores" id="storeGrid"></div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <select id="method">
+    <option value="claude">🤖 Claude Vision</option>
+    <option value="easyocr">🔍 EasyOCR</option>
+    <option value="tesseract">📄 Tesseract</option>
+  </select>
+  <button class="btn btn-extract" id="extractBtn" onclick="doExtract()">Çıkar</button>
+</div>
+
+<!-- Error -->
+<div class="error-box" id="errorBox" style="display:none"></div>
+
+<!-- Save bar (appears after extraction) -->
+<div class="save-bar" id="saveBar">
+  <span class="save-bar-text" id="saveBarText"></span>
+  <button class="btn btn-save" id="saveBtn" onclick="doSave()">💾 DB'ye Kaydet</button>
+</div>
+
+<!-- Results -->
+<div id="results"></div>
+
+<!-- Hidden file inputs (one per store) -->
+<div id="fileInputs" style="display:none"></div>
+
+<script>
+const STORES = ["BİM", "ŞOK", "A101"];
+const files  = {}; // key → File object
+let lastExtracted = null; // { store → { date, products } }
+
+function storeKey(s) {
+  return s.replace("İ","I").replace("Ş","S").replace("Ö","O");
+}
+
+// ----------------------------------------------------------------
+// Build store cards
+// ----------------------------------------------------------------
+const grid = document.getElementById("storeGrid");
+const fileInputsContainer = document.getElementById("fileInputs");
+
+STORES.forEach(store => {
+  const key = storeKey(store);
+
+  // Hidden file input
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.id = `file_${key}`;
+  inp.accept = "image/*";
+  inp.addEventListener("change", e => {
+    const f = e.target.files[0];
+    if (f) loadFile(f, key);
+  });
+  fileInputsContainer.appendChild(inp);
+
+  // Card
+  const card = document.createElement("div");
+  card.className = "store-card";
+  card.innerHTML = `
+    <div class="store-label">${store}</div>
+    <div class="drop-zone" id="zone_${key}"
+         ondragover="onDragOver(event,'${key}')"
+         ondragleave="onDragLeave('${key}')"
+         ondrop="onDrop(event,'${key}')"
+         onpaste="onPaste(event,'${key}')"
+         onclick="document.getElementById('file_${key}').click()">
+      <button class="clear-btn" onclick="clearZone(event,'${key}')">✕</button>
+      <img id="preview_${key}" src="" alt="önizleme" />
+      <div class="hint">
+        <div class="drop-icon">📋</div>
+        <div>Yapıştır <kbd>Ctrl+V</kbd></div>
+        <div>veya sürükle &amp; bırak</div>
+        <div style="margin-top:.4rem;font-size:.72rem;color:#3d3d58">tıkla → dosya seç</div>
+      </div>
+    </div>
+    <div>
+      <label class="date-label" for="date_${key}">Ürün geliş tarihi</label>
+      <input type="date" id="date_${key}" value="${todayStr()}" />
+    </div>
+  `;
+  grid.appendChild(card);
+});
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+// ----------------------------------------------------------------
+// Image loading helpers
+// ----------------------------------------------------------------
+function loadFile(file, key) {
+  files[key] = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const zone = document.getElementById(`zone_${key}`);
+    zone.classList.add("has-image");
+    document.getElementById(`preview_${key}`).src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearZone(event, key) {
+  event.stopPropagation();
+  delete files[key];
+  const zone = document.getElementById(`zone_${key}`);
+  zone.classList.remove("has-image");
+  document.getElementById(`preview_${key}`).src = "";
+  document.getElementById(`file_${key}`).value = "";
+}
+
+// Drag & drop
+function onDragOver(event, key) {
+  event.preventDefault();
+  document.getElementById(`zone_${key}`).classList.add("drag-over");
+}
+function onDragLeave(key) {
+  document.getElementById(`zone_${key}`).classList.remove("drag-over");
+}
+function onDrop(event, key) {
+  event.preventDefault();
+  document.getElementById(`zone_${key}`).classList.remove("drag-over");
+  const file = event.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) loadFile(file, key);
+}
+
+// Paste on zone
+function onPaste(event, key) {
+  for (const item of (event.clipboardData?.items ?? [])) {
+    if (item.type.startsWith("image/")) { loadFile(item.getAsFile(), key); break; }
+  }
+}
+
+// Global Ctrl+V → first empty slot
+document.addEventListener("paste", event => {
+  if (event.target.closest(".drop-zone")) return;
+  let file = null;
+  for (const item of (event.clipboardData?.items ?? [])) {
+    if (item.type.startsWith("image/")) { file = item.getAsFile(); break; }
+  }
+  if (!file) return;
+  for (const store of STORES) {
+    const key = storeKey(store);
+    if (!files[key]) { loadFile(file, key); break; }
+  }
+});
+
+// ----------------------------------------------------------------
+// STEP 1 — Extract
+// ----------------------------------------------------------------
+async function doExtract() {
+  const anyFile = STORES.some(s => files[storeKey(s)]);
+  if (!anyFile) { showError("En az bir market için görsel ekleyin."); return; }
+
+  const btn = document.getElementById("extractBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Çıkarılıyor…';
+  hideError();
+  document.getElementById("saveBar").classList.remove("visible");
+  document.getElementById("results").innerHTML = "";
+  lastExtracted = null;
+
+  const formData = new FormData();
+  formData.append("method", document.getElementById("method").value);
+
+  STORES.forEach(store => {
+    const key = storeKey(store);
+    if (files[key]) {
+      formData.append(`file_${key}`, files[key], files[key].name);
+      formData.append(`date_${key}`, document.getElementById(`date_${key}`).value);
+    }
+  });
+
+  try {
+    const res = await fetch("/extract", { method: "POST", body: formData });
+
+    // Safely parse JSON — Flask may return HTML on 413/500
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { showError(`Sunucu beklenmedik yanıt döndürdü (HTTP ${res.status}):\n${text.slice(0, 400)}`); return; }
+
+    if (!data.ok) { showError(data.error); return; }
+
+    lastExtracted = {};
+    STORES.forEach(store => {
+      const r = data.results[store];
+      if (r && !r.skipped) {
+        lastExtracted[store] = { date: r.date, products: r.products };
+      }
+    });
+
+    renderResults(data.results, false);
+    showSaveBar();
+  } catch (err) {
+    showError(String(err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Çıkar";
+  }
+}
+
+// ----------------------------------------------------------------
+// STEP 2 — Save to DB
+// ----------------------------------------------------------------
+async function doSave() {
+  if (!lastExtracted) return;
+
+  const btn = document.getElementById("saveBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Kaydediliyor…';
+  hideError();
+
+  try {
+    const res = await fetch("/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(lastExtracted),
+    });
+
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { showError(`Sunucu beklenmedik yanıt döndürdü (HTTP ${res.status}):\n${text.slice(0, 400)}`); return; }
+
+    if (!data.ok) { showError(data.error); return; }
+
+    // Update UI to show saved counts
+    const savedResults = {};
+    STORES.forEach(store => {
+      if (lastExtracted[store]) {
+        savedResults[store] = {
+          skipped: false,
+          date: lastExtracted[store].date,
+          products: lastExtracted[store].products,
+          savedCount: data.saved[store] ?? 0,
+        };
+      } else {
+        savedResults[store] = { skipped: true };
+      }
+    });
+    renderResults(savedResults, true);
+
+    document.getElementById("saveBar").classList.remove("visible");
+    lastExtracted = null;
+  } catch (err) {
+    showError(String(err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "💾 DB'ye Kaydet";
+  }
+}
+
+// ----------------------------------------------------------------
+// Render helpers
+// ----------------------------------------------------------------
+function renderResults(results, saved) {
+  const container = document.getElementById("results");
+  container.innerHTML = "";
+
+  const gridEl = document.createElement("div");
+  gridEl.className = "result-grid";
+
+  STORES.forEach(store => {
+    const r = results[store];
+    const card = document.createElement("div");
+    card.className = "result-card";
+
+    if (!r || r.skipped) {
+      card.innerHTML = `
+        <div class="result-card-header">
+          <strong>${store}</strong>
+          <span class="badge badge-gray">Görsel yok</span>
+        </div>`;
+    } else {
+      let badge;
+      if (saved) {
+        badge = `<span class="badge badge-saved">✓ ${r.savedCount} kayıt eklendi</span>`;
+      } else {
+        badge = `<span class="badge badge-green">${r.products.length} ürün bulundu</span>`;
+      }
+
+      const items = r.products.map(p =>
+        `<li>
+          <span class="product-name">${esc(p.name)}</span>
+          <span class="product-cat">${esc(p.category)}</span>
+        </li>`
+      ).join("");
+
+      card.innerHTML = `
+        <div class="result-card-header">
+          <strong>${store}</strong>
+          ${badge}
+        </div>
+        <ul class="product-list">${items || '<li style="color:#555">Ürün bulunamadı</li>'}</ul>`;
+    }
+
+    gridEl.appendChild(card);
+  });
+
+  container.appendChild(gridEl);
+}
+
+function showSaveBar() {
+  const total = Object.values(lastExtracted)
+    .reduce((sum, v) => sum + (v.products?.length ?? 0), 0);
+  document.getElementById("saveBarText").textContent =
+    `Toplam ${total} ürün çıkarıldı. DB'ye kaydetmek istiyor musunuz?`;
+  document.getElementById("saveBar").classList.add("visible");
+}
+
+function showError(msg) {
+  const box = document.getElementById("errorBox");
+  box.textContent = "❌ " + msg;
+  box.style.display = "block";
+}
+
+function hideError() {
+  document.getElementById("errorBox").style.display = "none";
+}
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+</script>
+</body>
+</html>

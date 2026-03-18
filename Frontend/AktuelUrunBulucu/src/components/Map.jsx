@@ -63,7 +63,13 @@ function matchesStoreName(osmChain, osmName, storeName) {
   )
 }
 
-export default function Map({ osmStores, matchedStoreNames, userCoords }) {
+const DISTANCE_RINGS = [
+  { radius: 1000, color: '#22c55e', label: '1 km' },
+  { radius: 3000, color: '#f59e0b', label: '3 km' },
+  { radius: 5000, color: '#ef4444', label: '5 km' },
+]
+
+export default function Map({ osmStores, matchedStoreNames, userCoords, searchPerformed }) {
   const highlighted = new Set(matchedStoreNames.map(n => n.toLowerCase()))
 
   return (
@@ -79,19 +85,30 @@ export default function Map({ osmStores, matchedStoreNames, userCoords }) {
 
       {userCoords && <RecenterMap coords={userCoords} />}
 
-      {/* Kullanıcı konumu + 10km çember */}
+      {/* Kullanıcı konumu marker */}
       {userCoords && (
-        <>
-          <Circle
-            center={[userCoords.latitude, userCoords.longitude]}
-            radius={10000}
-            pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.05, weight: 1.5 }}
-          />
-          <Marker position={[userCoords.latitude, userCoords.longitude]} icon={USER_ICON} zIndexOffset={2000}>
-            <Popup>Konumunuz</Popup>
-          </Marker>
-        </>
+        <Marker position={[userCoords.latitude, userCoords.longitude]} icon={USER_ICON} zIndexOffset={2000}>
+          <Popup>Konumunuz</Popup>
+        </Marker>
       )}
+
+      {/* Arama yapılınca 1km / 3km / 5km mesafe halkaları */}
+      {userCoords && searchPerformed && DISTANCE_RINGS.map(ring => (
+        <Circle
+          key={ring.radius}
+          center={[userCoords.latitude, userCoords.longitude]}
+          radius={ring.radius}
+          pathOptions={{
+            color: ring.color,
+            fillColor: ring.color,
+            fillOpacity: 0.04,
+            weight: 1.5,
+            dashArray: '6 4',
+          }}
+        >
+          <Popup>{ring.label} yarıçap</Popup>
+        </Circle>
+      ))}
 
       {osmStores.map(store => {
         const isHighlighted = [...highlighted].some(name =>

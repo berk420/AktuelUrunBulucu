@@ -19,3 +19,12 @@ export async function saveUserLocation(ip, latitude, longitude) {
     body: JSON.stringify({ ip, latitude, longitude })
   })
 }
+
+export async function subscribeNotification(ip, email, product) {
+  const res = await fetch(`${API_URL}/api/notify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ip, email, product })
+  })
+  if (!res.ok) throw new Error('Bildirim kaydedilemedi')
+}

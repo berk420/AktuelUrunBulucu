@@ -13,8 +13,12 @@ node_modules/
 dist/
 
 # Env
+.env
 .env.local
 .env.*.local
+
+# Secrets
+ProductDataProvider/config.py
 
 # OS
 .DS_Store

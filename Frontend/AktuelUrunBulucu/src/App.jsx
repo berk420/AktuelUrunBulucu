@@ -5,7 +5,7 @@ import SearchBar from './components/SearchBar'
 import Map from './components/Map'
 import StoreList from './components/StoreList'
 import NotFoundMessage from './components/NotFoundMessage'
-import { searchProducts, getUserIp, saveUserLocation } from './api/searchApi'
+import { searchProducts, getUserIp, saveUserLocation, subscribeNotification } from './api/searchApi'
 import { fetchOsmStores } from './api/overpassApi'
 import { haversineKm } from './utils/distance'
 
@@ -17,8 +17,10 @@ export default function App() {
   const [userCoords, setUserCoords] = useState(null)
   const [matchedProducts, setMatchedProducts] = useState([])
   const [notFound, setNotFound] = useState(false)
+  const [lastQuery, setLastQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [osmLoading, setOsmLoading] = useState(true)
+  const [searchPerformed, setSearchPerformed] = useState(false)
 
   useEffect(() => {
     // Konum al ve kaydet
@@ -56,6 +58,7 @@ export default function App() {
     setLoading(true)
     setNotFound(false)
     setMatchedProducts([])
+    setSearchPerformed(true)
 
     try {
       const ip = await getUserIp()
@@ -65,6 +68,7 @@ export default function App() {
         setMatchedProducts(result.matchedProducts)
       } else {
         setNotFound(true)
+        setLastQuery(query.trim())
       }
     } catch (err) {
       console.error(err)
@@ -104,7 +108,15 @@ export default function App() {
             <span style={{ fontSize: '13px', color: '#6b7280' }}>Ürün aranıyor...</span>
           </div>
         )}
-        <NotFoundMessage visible={notFound} onClose={() => setNotFound(false)} />
+        <NotFoundMessage
+          visible={notFound}
+          searchedProduct={lastQuery}
+          onClose={() => setNotFound(false)}
+          onSubscribe={async (email) => {
+            const ip = await getUserIp()
+            await subscribeNotification(ip, email, lastQuery)
+          }}
+        />
       </div>
 
       {/* Body */}
@@ -120,6 +132,7 @@ export default function App() {
               osmStores={nearbyOsmStores}
               matchedStoreNames={matchedStoreNames}
               userCoords={userCoords}
+              searchPerformed={searchPerformed}
             />
           )}
         </div>

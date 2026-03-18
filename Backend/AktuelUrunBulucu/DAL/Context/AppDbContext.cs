@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     public DbSet<Product> Products => Set<Product>();
     public DbSet<SearchLog> SearchLogs => Set<SearchLog>();
     public DbSet<UserCoordinate> UserCoordinates => Set<UserCoordinate>();
+    public DbSet<NotificationRequest> NotificationRequests => Set<NotificationRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +32,12 @@ public class AppDbContext : DbContext
         {
             e.HasKey(u => u.Id);
             e.Property(u => u.Id).ValueGeneratedOnAdd();
+        });
+
+        modelBuilder.Entity<NotificationRequest>(e =>
+        {
+            e.HasKey(n => n.Id);
+            e.Property(n => n.Id).ValueGeneratedOnAdd();
         });
 
         SeedData(modelBuilder);
