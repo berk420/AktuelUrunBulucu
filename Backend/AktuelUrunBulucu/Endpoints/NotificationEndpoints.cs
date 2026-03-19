@@ -1,4 +1,3 @@
-using AktuelUrunBulucu.BLL.Services;
 using AktuelUrunBulucu.DAL.Entities;
 using AktuelUrunBulucu.DAL.Repositories;
 
@@ -8,7 +7,7 @@ public static class NotificationEndpoints
 {
     public static void MapNotificationEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/notify", async (NotifyRequest req, INotificationRequestRepository repo, IMailService mailService) =>
+        app.MapPost("/api/notify", async (NotifyRequest req, INotificationRequestRepository repo) =>
         {
             if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Product))
                 return Results.BadRequest("Email ve ürün adı zorunludur.");
@@ -20,8 +19,6 @@ public static class NotificationEndpoints
                 SearchedProduct = req.Product,
                 RequestedAt = DateTime.UtcNow
             });
-
-            await mailService.SendNotificationConfirmationAsync(req.Email, req.Product);
 
             return Results.Ok();
         })

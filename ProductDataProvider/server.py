@@ -54,37 +54,96 @@ def extract():
 
     for store in STORES:
         key = _store_key(store)
-        file = request.files.get(f"file_{key}")
+        uploaded_files = request.files.getlist(f"file_{key}")
+        uploaded_files = [f for f in uploaded_files if f.filename != ""]
         date_str = request.form.get(f"date_{key}", "")
 
-        if not file or file.filename == "":
+        if not uploaded_files:
             results[store] = {"skipped": True, "products": []}
             continue
 
-        suffix = Path(file.filename).suffix.lower() or ".jpg"
+        all_products: list[dict] = []
 
-        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-            file.save(tmp.name)
-            tmp_path = tmp.name
+        for file in uploaded_files:
+            suffix = Path(file.filename).suffix.lower() or ".jpg"
 
-        try:
-            products = extractor.extract(tmp_path)
-        except Exception as exc:
-            return jsonify({
-                "ok": False,
-                "error": f"{store} çıkarma hatası: {exc}\n{traceback.format_exc()}"
-            }), 500
-        finally:
-            os.unlink(tmp_path)
+            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+                file.save(tmp.name)
+                tmp_path = tmp.name
+
+            try:
+                products = extractor.extract(tmp_path)
+                all_products.extend(products)
+            except Exception as exc:
+                return jsonify({
+                    "ok": False,
+                    "error": f"{store} çıkarma hatası: {exc}\n{traceback.format_exc()}"
+                }), 500
+            finally:
+                os.unlink(tmp_path)
 
         results[store] = {
             "skipped": False,
             "date": date_str,
-            "count": len(products),
-            "products": products,
+            "count": len(all_products),
+            "products": all_products,
         }
 
     return jsonify({"ok": True, "results": results})
+
+
+@app.route("/manual-add", methods=["POST"])
+def manual_add():
+    """
+    Tek bir ürünü manuel olarak DB'ye ekler.
+
+    JSON body:
+        { "name": "...", "category": "...", "store": "...", "date": "YYYY-MM-DD" }
+    """
+    data = request.get_json(force=True)
+    name     = (data.get("name")     or "").strip()
+    category = (data.get("category") or "").strip()
+    store    = (data.get("store")    or "").strip()
+    date_str = (data.get("date")     or "").strip()
+
+    if not name or not store or not date_str:
+        return jsonify({"ok": False, "error": "Ürün adı, market ve tarih zorunludur."}), 400
+
+    try:
+        bring_date = datetime.strptime(date_str, "%Y-%m-%d")
+    except ValueError:
+        return jsonify({"ok": False, "error": f"Geçersiz tarih: {date_str}"}), 400
+
+    db_writer.insert_products(
+        [{"name": name, "category": category or "Diğer"}],
+        store,
+        bring_date,
+    )
+    return jsonify({"ok": True})
+
+
+@app.route("/send-notifications", methods=["POST"])
+def send_notifications():
+    """
+    Kaydedilen ürünlerle eşleşen abonelere bildirim maili gönderir.
+
+    JSON body:
+        { "products": ["Ürün A", "Ürün B", ...] }
+    """
+    import mail_sender
+
+    data = request.get_json(force=True)
+    product_names = data.get("products", [])
+
+    if not product_names:
+        return jsonify({"ok": False, "error": "Ürün listesi boş."}), 400
+
+    try:
+        sent = mail_sender.send_notifications(product_names)
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+    return jsonify({"ok": True, "sent": sent})
 
 
 @app.route("/save", methods=["POST"])

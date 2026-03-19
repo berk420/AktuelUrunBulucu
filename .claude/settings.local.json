@@ -6,7 +6,9 @@
       "Bash(mkdir:*)",
       "Bash(cd:*)",
       "Bash(cd)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Read(//c/Program Files/Microsoft Visual Studio/**)",
+      "Read(//c/Program Files \\(x86\\)/Microsoft Visual Studio/**)"
     ]
   }
 }

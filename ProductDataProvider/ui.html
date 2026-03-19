@@ -15,15 +15,8 @@
       padding: 2rem 1rem 4rem;
     }
 
-    h1 {
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 2rem;
-      color: #fff;
-    }
+    h1 { text-align: center; font-size: 1.5rem; font-weight: 700; margin-bottom: 2rem; color: #fff; }
 
-    /* ---- Store grid ---- */
     .stores {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -42,67 +35,97 @@
       gap: 1rem;
     }
 
-    .store-label {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #a78bfa;
-    }
+    .store-label { font-size: 1.1rem; font-weight: 700; color: #a78bfa; }
 
-    /* ---- Drop zone ---- */
+    /* ---- Drop zone (outer) ---- */
     .drop-zone {
       border: 2px dashed #3d3d58;
       border-radius: 10px;
-      min-height: 180px;
+      min-height: 80px;
+      padding: .75rem;
+      transition: border-color .2s, background .2s;
+      cursor: pointer;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: #a78bfa; background: #1e1a33; }
+    .drop-zone.has-files { border-color: #4ade80; border-style: solid; cursor: default; }
+
+    /* ---- Thumbnails grid ---- */
+    .thumb-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      margin-bottom: .5rem;
+    }
+
+    .thumb-item {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1.5px solid #2e2e42;
+    }
+
+    .thumb-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .thumb-remove {
+      position: absolute;
+      top: 2px; right: 2px;
+      background: #ef4444cc;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 18px; height: 18px;
+      font-size: .6rem;
+      cursor: pointer;
+      line-height: 18px;
+      text-align: center;
+      font-weight: bold;
+      display: none;
+    }
+    .thumb-item:hover .thumb-remove { display: block; }
+
+    /* Add more button (inside grid) */
+    .thumb-add {
+      width: 72px;
+      height: 72px;
+      border-radius: 8px;
+      border: 2px dashed #3d3d58;
+      background: none;
+      color: #555;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color .15s, color .15s;
+    }
+    .thumb-add:hover { border-color: #a78bfa; color: #a78bfa; }
+
+    /* Empty state hint */
+    .drop-hint {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: .4rem;
-      cursor: pointer;
-      transition: border-color .2s, background .2s;
-      position: relative;
-      overflow: hidden;
+      gap: .3rem;
       color: #555;
       font-size: .82rem;
       text-align: center;
-      padding: 1rem;
-      user-select: none;
+      padding: .5rem 0;
+      pointer-events: none;
     }
-    .drop-zone:hover, .drop-zone.drag-over { border-color: #a78bfa; background: #1e1a33; }
-    .drop-zone.has-image { border-color: #4ade80; border-style: solid; }
+    .drop-icon { font-size: 1.8rem; line-height: 1; }
 
-    .drop-zone img {
-      max-width: 100%;
-      max-height: 200px;
-      border-radius: 6px;
-      object-fit: contain;
-      display: none;
-    }
-    .drop-zone.has-image img { display: block; }
-    .drop-zone.has-image .hint { display: none; }
-
-    .drop-icon { font-size: 2rem; line-height: 1; }
-
-    .clear-btn {
-      display: none;
-      position: absolute;
-      top: 6px; right: 8px;
-      background: #ef4444;
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 24px; height: 24px;
-      font-size: .75rem;
-      cursor: pointer;
-      line-height: 24px;
-      text-align: center;
-      font-weight: bold;
-    }
-    .drop-zone.has-image .clear-btn { display: block; }
-
-    /* ---- Date input ---- */
+    /* Date */
     .date-label { font-size: .78rem; color: #888; display: block; margin-bottom: .25rem; }
-
     input[type="date"] {
       width: 100%;
       background: #12121c;
@@ -115,7 +138,7 @@
     }
     input[type="date"]:focus { border-color: #a78bfa; }
 
-    /* ---- Bottom toolbar ---- */
+    /* Toolbar */
     .toolbar {
       max-width: 1100px;
       margin: 0 auto 1.5rem;
@@ -124,7 +147,6 @@
       gap: .75rem;
       flex-wrap: wrap;
     }
-
     select {
       background: #1a1a24;
       border: 1.5px solid #2e2e42;
@@ -148,115 +170,117 @@
     }
     .btn:active { transform: scale(.97); }
     .btn:disabled { opacity: .4; cursor: not-allowed; }
-
     .btn-extract { background: #7c3aed; color: #fff; margin-left: auto; }
     .btn-extract:hover:not(:disabled) { background: #6d28d9; }
-
     .btn-save { background: #16a34a; color: #fff; }
     .btn-save:hover:not(:disabled) { background: #15803d; }
 
-    /* ---- Results ---- */
-    #results { max-width: 1100px; margin: 0 auto; }
+    /* Error */
+    .error-box {
+      max-width: 1100px; margin: 0 auto 1rem;
+      background: #2d1010; border: 1.5px solid #7f1d1d;
+      border-radius: 10px; padding: .9rem 1.1rem;
+      color: #fca5a5; font-size: .85rem; white-space: pre-wrap;
+    }
 
+    /* Save bar */
+    .save-bar {
+      max-width: 1100px; margin: 0 auto 1.5rem;
+      background: #1a2a1a; border: 1.5px solid #16a34a44;
+      border-radius: 12px; padding: 1rem 1.25rem;
+      display: none; align-items: center;
+      justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    }
+    .save-bar.visible { display: flex; }
+    .save-bar-text { color: #86efac; font-size: .95rem; }
+
+    /* ---- Notify bar ---- */
+    .notify-bar {
+      max-width: 1100px; margin: 0 auto 1.5rem;
+      background: #1a1a2e; border: 1.5px solid #7c3aed44;
+      border-radius: 12px; padding: 1rem 1.25rem;
+      display: none; align-items: center;
+      justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    }
+    .notify-bar.visible { display: flex; }
+    .notify-bar-text { color: #c4b5fd; font-size: .95rem; }
+    .btn-notify { background: #7c3aed; color: #fff; }
+    .btn-notify:hover:not(:disabled) { background: #6d28d9; }
+
+    /* ---- Manual form ---- */
+    .manual-section {
+      max-width: 1100px; margin: 0 auto 2rem;
+      background: #1a1a24; border: 1.5px solid #2e2e42;
+      border-radius: 14px; padding: 1.25rem;
+    }
+    .manual-title {
+      font-size: 1rem; font-weight: 700; color: #a78bfa;
+      margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem;
+      cursor: pointer; user-select: none;
+    }
+    .manual-title .arrow { transition: transform .2s; display: inline-block; }
+    .manual-title.open .arrow { transform: rotate(90deg); }
+    .manual-fields {
+      display: none;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: .75rem; align-items: end;
+    }
+    .manual-fields.open { display: grid; }
+    .field-group { display: flex; flex-direction: column; gap: .25rem; }
+    .field-label { font-size: .78rem; color: #888; }
+    .field-input {
+      background: #12121c; border: 1.5px solid #2e2e42;
+      border-radius: 8px; color: #e2e2e2;
+      padding: .5rem .75rem; font-size: .9rem; outline: none; width: 100%;
+    }
+    .field-input:focus { border-color: #a78bfa; }
+    .btn-add { background: #0ea5e9; color: #fff; white-space: nowrap; align-self: end; }
+    .btn-add:hover:not(:disabled) { background: #0284c7; }
+
+    @media (max-width: 750px) {
+      .manual-fields { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* Results */
+    #results { max-width: 1100px; margin: 0 auto; }
     .result-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 1.25rem;
-      margin-bottom: 1.25rem;
+      gap: 1.25rem; margin-bottom: 1.25rem;
     }
-
     .result-card {
-      background: #1a1a24;
-      border: 1.5px solid #2e2e42;
-      border-radius: 12px;
-      padding: 1rem 1.1rem;
+      background: #1a1a24; border: 1.5px solid #2e2e42;
+      border-radius: 12px; padding: 1rem 1.1rem;
     }
-
     .result-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: .75rem;
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: .75rem;
     }
-
     .result-card-header strong { color: #a78bfa; font-size: 1rem; }
-
-    .badge {
-      border-radius: 20px;
-      padding: .15rem .6rem;
-      font-size: .72rem;
-      font-weight: 700;
-    }
-    .badge-green  { background: #4ade80; color: #0a2010; }
-    .badge-gray   { background: #444; color: #ccc; }
-    .badge-saved  { background: #22c55e; color: #052010; }
+    .badge { border-radius: 20px; padding: .15rem .6rem; font-size: .72rem; font-weight: 700; }
+    .badge-green { background: #4ade80; color: #0a2010; }
+    .badge-gray  { background: #444; color: #ccc; }
+    .badge-saved { background: #22c55e; color: #052010; }
 
     .product-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: .3rem;
-      max-height: 320px;
-      overflow-y: auto;
+      list-style: none; display: flex; flex-direction: column;
+      gap: .3rem; max-height: 320px; overflow-y: auto;
     }
-
     .product-list::-webkit-scrollbar { width: 4px; }
     .product-list::-webkit-scrollbar-thumb { background: #3d3d58; border-radius: 4px; }
-
     .product-list li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #12121c;
-      border-radius: 6px;
-      padding: .35rem .6rem;
-      font-size: .82rem;
-      gap: .5rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: #12121c; border-radius: 6px;
+      padding: .35rem .6rem; font-size: .82rem; gap: .5rem;
     }
-
     .product-name { flex: 1; }
     .product-cat { color: #555; font-size: .75rem; white-space: nowrap; }
 
-    .save-bar {
-      display: none;
-      max-width: 1100px;
-      margin: 0 auto 1.5rem;
-      background: #1a2a1a;
-      border: 1.5px solid #16a34a44;
-      border-radius: 12px;
-      padding: 1rem 1.25rem;
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .save-bar.visible { display: flex; }
-
-    .save-bar-text { color: #86efac; font-size: .95rem; }
-
-    .error-box {
-      max-width: 1100px;
-      margin: 0 auto 1rem;
-      background: #2d1010;
-      border: 1.5px solid #7f1d1d;
-      border-radius: 10px;
-      padding: .9rem 1.1rem;
-      color: #fca5a5;
-      font-size: .85rem;
-      white-space: pre-wrap;
-    }
-
     .spinner {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid #ffffff33;
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      vertical-align: middle;
-      margin-right: .4rem;
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid #ffffff33; border-top-color: #fff;
+      border-radius: 50%; animation: spin .7s linear infinite;
+      vertical-align: middle; margin-right: .4rem;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -269,10 +293,8 @@
 
 <h1>🛒 Aktüel Ürün Yükleyici</h1>
 
-<!-- Store Cards -->
 <div class="stores" id="storeGrid"></div>
 
-<!-- Toolbar -->
 <div class="toolbar">
   <select id="method">
     <option value="claude">🤖 Claude Vision</option>
@@ -282,25 +304,57 @@
   <button class="btn btn-extract" id="extractBtn" onclick="doExtract()">Çıkar</button>
 </div>
 
-<!-- Error -->
 <div class="error-box" id="errorBox" style="display:none"></div>
 
-<!-- Save bar (appears after extraction) -->
 <div class="save-bar" id="saveBar">
   <span class="save-bar-text" id="saveBarText"></span>
   <button class="btn btn-save" id="saveBtn" onclick="doSave()">💾 DB'ye Kaydet</button>
 </div>
 
-<!-- Results -->
+<div class="notify-bar" id="notifyBar">
+  <span class="notify-bar-text" id="notifyBarText"></span>
+  <button class="btn btn-notify" id="notifyBtn" onclick="doSendNotifications()">📧 Bildirimleri Gönder</button>
+</div>
+
 <div id="results"></div>
 
-<!-- Hidden file inputs (one per store) -->
+<!-- Manuel Ürün Ekle -->
+<div class="manual-section">
+  <div class="manual-title" id="manualToggle" onclick="toggleManual()">
+    <span class="arrow">▶</span> Manuel Ürün Ekle
+  </div>
+  <div class="manual-fields" id="manualFields">
+    <div class="field-group">
+      <label class="field-label">Ürün Adı *</label>
+      <input class="field-input" id="m_name" type="text" placeholder="Darbeli Matkap 600W" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Kategori</label>
+      <input class="field-input" id="m_category" type="text" placeholder="Araç Gereç" />
+    </div>
+    <div class="field-group">
+      <label class="field-label">Market *</label>
+      <input class="field-input" id="m_store" type="text" placeholder="BİM" list="storeList" />
+      <datalist id="storeList">
+        <option value="BİM"/><option value="ŞOK"/><option value="A101"/>
+        <option value="Migros"/><option value="CarrefourSA"/>
+      </datalist>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Geliş Tarihi *</label>
+      <input class="field-input" id="m_date" type="date" />
+    </div>
+    <button class="btn btn-add" onclick="doManualAdd()">+ Ekle</button>
+  </div>
+</div>
+
 <div id="fileInputs" style="display:none"></div>
 
 <script>
 const STORES = ["BİM", "ŞOK", "A101"];
-const files  = {}; // key → File object
-let lastExtracted = null; // { store → { date, products } }
+const filesMap = {};
+let lastExtracted = null;
+let lastSavedProducts = []; // tüm kaydedilen ürün adları (bildirim için)
 
 function storeKey(s) {
   return s.replace("İ","I").replace("Ş","S").replace("Ö","O");
@@ -314,19 +368,20 @@ const fileInputsContainer = document.getElementById("fileInputs");
 
 STORES.forEach(store => {
   const key = storeKey(store);
+  filesMap[key] = [];
 
-  // Hidden file input
+  // Hidden file input (multiple)
   const inp = document.createElement("input");
   inp.type = "file";
-  inp.id = `file_${key}`;
+  inp.id = `fileinput_${key}`;
   inp.accept = "image/*";
+  inp.multiple = true;
   inp.addEventListener("change", e => {
-    const f = e.target.files[0];
-    if (f) loadFile(f, key);
+    Array.from(e.target.files).forEach(f => addFile(f, key));
+    e.target.value = "";
   });
   fileInputsContainer.appendChild(inp);
 
-  // Card
   const card = document.createElement("div");
   card.className = "store-card";
   card.innerHTML = `
@@ -334,16 +389,12 @@ STORES.forEach(store => {
     <div class="drop-zone" id="zone_${key}"
          ondragover="onDragOver(event,'${key}')"
          ondragleave="onDragLeave('${key}')"
-         ondrop="onDrop(event,'${key}')"
-         onpaste="onPaste(event,'${key}')"
-         onclick="document.getElementById('file_${key}').click()">
-      <button class="clear-btn" onclick="clearZone(event,'${key}')">✕</button>
-      <img id="preview_${key}" src="" alt="önizleme" />
-      <div class="hint">
+         ondrop="onDrop(event,'${key}')">
+      <div class="thumb-grid" id="thumbgrid_${key}"></div>
+      <div class="drop-hint" id="hint_${key}">
         <div class="drop-icon">📋</div>
-        <div>Yapıştır <kbd>Ctrl+V</kbd></div>
-        <div>veya sürükle &amp; bırak</div>
-        <div style="margin-top:.4rem;font-size:.72rem;color:#3d3d58">tıkla → dosya seç</div>
+        <div>Yapıştır <kbd>Ctrl+V</kbd> · Sürükle &amp; bırak</div>
+        <div style="margin-top:.25rem;font-size:.72rem;color:#3d3d58">veya tıkla → dosya seç</div>
       </div>
     </div>
     <div>
@@ -352,6 +403,19 @@ STORES.forEach(store => {
     </div>
   `;
   grid.appendChild(card);
+
+  // Click on empty area → open file picker
+  document.getElementById(`zone_${key}`).addEventListener("click", e => {
+    if (e.target.closest(".thumb-item") || e.target.closest(".thumb-add")) return;
+    document.getElementById(`fileinput_${key}`).click();
+  });
+
+  // Paste on zone
+  document.getElementById(`zone_${key}`).addEventListener("paste", e => {
+    Array.from(e.clipboardData?.items ?? []).forEach(item => {
+      if (item.type.startsWith("image/")) addFile(item.getAsFile(), key);
+    });
+  });
 });
 
 function todayStr() {
@@ -359,26 +423,54 @@ function todayStr() {
 }
 
 // ----------------------------------------------------------------
-// Image loading helpers
+// File management
 // ----------------------------------------------------------------
-function loadFile(file, key) {
-  files[key] = file;
+function addFile(file, key) {
+  if (!file || !file.type.startsWith("image/")) return;
   const reader = new FileReader();
   reader.onload = e => {
-    const zone = document.getElementById(`zone_${key}`);
-    zone.classList.add("has-image");
-    document.getElementById(`preview_${key}`).src = e.target.result;
+    filesMap[key].push({ file, previewUrl: e.target.result });
+    renderThumbs(key);
   };
   reader.readAsDataURL(file);
 }
 
-function clearZone(event, key) {
-  event.stopPropagation();
-  delete files[key];
+function removeFile(key, idx) {
+  filesMap[key].splice(idx, 1);
+  renderThumbs(key);
+}
+
+function renderThumbs(key) {
+  const grid = document.getElementById(`thumbgrid_${key}`);
+  const hint = document.getElementById(`hint_${key}`);
   const zone = document.getElementById(`zone_${key}`);
-  zone.classList.remove("has-image");
-  document.getElementById(`preview_${key}`).src = "";
-  document.getElementById(`file_${key}`).value = "";
+  const list = filesMap[key];
+
+  grid.innerHTML = "";
+
+  list.forEach((item, idx) => {
+    const div = document.createElement("div");
+    div.className = "thumb-item";
+    div.innerHTML = `
+      <img src="${item.previewUrl}" alt="görsel ${idx+1}" />
+      <button class="thumb-remove" onclick="removeFile('${key}',${idx})">✕</button>
+    `;
+    grid.appendChild(div);
+  });
+
+  // "+" add button
+  const addBtn = document.createElement("button");
+  addBtn.className = "thumb-add";
+  addBtn.textContent = "+";
+  addBtn.title = "Görsel ekle";
+  addBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    document.getElementById(`fileinput_${key}`).click();
+  });
+  grid.appendChild(addBtn);
+
+  hint.style.display = list.length === 0 ? "flex" : "none";
+  zone.classList.toggle("has-files", list.length > 0);
 }
 
 // Drag & drop
@@ -392,18 +484,12 @@ function onDragLeave(key) {
 function onDrop(event, key) {
   event.preventDefault();
   document.getElementById(`zone_${key}`).classList.remove("drag-over");
-  const file = event.dataTransfer.files[0];
-  if (file && file.type.startsWith("image/")) loadFile(file, key);
+  Array.from(event.dataTransfer.files).forEach(f => {
+    if (f.type.startsWith("image/")) addFile(f, key);
+  });
 }
 
-// Paste on zone
-function onPaste(event, key) {
-  for (const item of (event.clipboardData?.items ?? [])) {
-    if (item.type.startsWith("image/")) { loadFile(item.getAsFile(), key); break; }
-  }
-}
-
-// Global Ctrl+V → first empty slot
+// Global Ctrl+V → first store that has focus, or first store
 document.addEventListener("paste", event => {
   if (event.target.closest(".drop-zone")) return;
   let file = null;
@@ -411,17 +497,15 @@ document.addEventListener("paste", event => {
     if (item.type.startsWith("image/")) { file = item.getAsFile(); break; }
   }
   if (!file) return;
-  for (const store of STORES) {
-    const key = storeKey(store);
-    if (!files[key]) { loadFile(file, key); break; }
-  }
+  // Add to first store by default
+  addFile(file, storeKey(STORES[0]));
 });
 
 // ----------------------------------------------------------------
 // STEP 1 — Extract
 // ----------------------------------------------------------------
 async function doExtract() {
-  const anyFile = STORES.some(s => files[storeKey(s)]);
+  const anyFile = STORES.some(s => filesMap[storeKey(s)].length > 0);
   if (!anyFile) { showError("En az bir market için görsel ekleyin."); return; }
 
   const btn = document.getElementById("extractBtn");
@@ -437,16 +521,16 @@ async function doExtract() {
 
   STORES.forEach(store => {
     const key = storeKey(store);
-    if (files[key]) {
-      formData.append(`file_${key}`, files[key], files[key].name);
+    filesMap[key].forEach((item, idx) => {
+      formData.append(`file_${key}`, item.file, item.file.name || `image_${idx}.jpg`);
+    });
+    if (filesMap[key].length > 0) {
       formData.append(`date_${key}`, document.getElementById(`date_${key}`).value);
     }
   });
 
   try {
     const res = await fetch("/extract", { method: "POST", body: formData });
-
-    // Safely parse JSON — Flask may return HTML on 413/500
     const text = await res.text();
     let data;
     try { data = JSON.parse(text); }
@@ -489,7 +573,6 @@ async function doSave() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(lastExtracted),
     });
-
     const text = await res.text();
     let data;
     try { data = JSON.parse(text); }
@@ -497,7 +580,6 @@ async function doSave() {
 
     if (!data.ok) { showError(data.error); return; }
 
-    // Update UI to show saved counts
     const savedResults = {};
     STORES.forEach(store => {
       if (lastExtracted[store]) {
@@ -512,9 +594,14 @@ async function doSave() {
       }
     });
     renderResults(savedResults, true);
-
     document.getElementById("saveBar").classList.remove("visible");
+
+    // Kaydedilen ürün adlarını topla → bildirim barı için
+    lastSavedProducts = Object.values(lastExtracted)
+      .flatMap(v => (v.products ?? []).map(p => p.name));
     lastExtracted = null;
+    showNotifyBar();
+
   } catch (err) {
     showError(String(err));
   } finally {
@@ -529,7 +616,6 @@ async function doSave() {
 function renderResults(results, saved) {
   const container = document.getElementById("results");
   container.innerHTML = "";
-
   const gridEl = document.createElement("div");
   gridEl.className = "result-grid";
 
@@ -545,12 +631,9 @@ function renderResults(results, saved) {
           <span class="badge badge-gray">Görsel yok</span>
         </div>`;
     } else {
-      let badge;
-      if (saved) {
-        badge = `<span class="badge badge-saved">✓ ${r.savedCount} kayıt eklendi</span>`;
-      } else {
-        badge = `<span class="badge badge-green">${r.products.length} ürün bulundu</span>`;
-      }
+      const badge = saved
+        ? `<span class="badge badge-saved">✓ ${r.savedCount} kayıt eklendi</span>`
+        : `<span class="badge badge-green">${r.products.length} ürün bulundu</span>`;
 
       const items = r.products.map(p =>
         `<li>
@@ -566,11 +649,121 @@ function renderResults(results, saved) {
         </div>
         <ul class="product-list">${items || '<li style="color:#555">Ürün bulunamadı</li>'}</ul>`;
     }
-
     gridEl.appendChild(card);
   });
-
   container.appendChild(gridEl);
+}
+
+// ----------------------------------------------------------------
+// Notify bar
+// ----------------------------------------------------------------
+function showNotifyBar() {
+  if (!lastSavedProducts.length) return;
+  document.getElementById("notifyBarText").textContent =
+    `${lastSavedProducts.length} ürün kaydedildi. Abone olan kullanıcılara bildirim maili gönderilsin mi?`;
+  document.getElementById("notifyBar").classList.add("visible");
+}
+
+async function doSendNotifications() {
+  const btn = document.getElementById("notifyBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Gönderiliyor…';
+  hideError();
+
+  try {
+    const res = await fetch("/send-notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ products: lastSavedProducts }),
+    });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { showError(`Sunucu beklenmedik yanıt döndürdü (HTTP ${res.status}):\n${text.slice(0, 400)}`); return; }
+
+    if (!data.ok) { showError(data.error); return; }
+
+    document.getElementById("notifyBar").classList.remove("visible");
+    document.getElementById("notifyBarText").textContent = "";
+    lastSavedProducts = [];
+
+    // Kısa başarı mesajı
+    const box = document.getElementById("errorBox");
+    box.style.background = "#052e16";
+    box.style.borderColor = "#16a34a";
+    box.style.color = "#86efac";
+    box.textContent = `✅ ${data.sent} kişiye bildirim maili gönderildi.`;
+    box.style.display = "block";
+    setTimeout(() => { box.style.display = "none"; box.style.background = ""; box.style.borderColor = ""; box.style.color = ""; }, 4000);
+  } catch (err) {
+    showError(String(err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📧 Bildirimleri Gönder";
+  }
+}
+
+// ----------------------------------------------------------------
+// Manuel ürün ekleme
+// ----------------------------------------------------------------
+function toggleManual() {
+  const toggle = document.getElementById("manualToggle");
+  const fields = document.getElementById("manualFields");
+  const open = fields.classList.toggle("open");
+  toggle.classList.toggle("open", open);
+  if (open && !document.getElementById("m_date").value) {
+    document.getElementById("m_date").value = todayStr();
+  }
+}
+
+async function doManualAdd() {
+  const name     = document.getElementById("m_name").value.trim();
+  const category = document.getElementById("m_category").value.trim();
+  const store    = document.getElementById("m_store").value.trim();
+  const date     = document.getElementById("m_date").value;
+
+  if (!name || !store || !date) {
+    showError("Ürün adı, market ve tarih zorunludur.");
+    return;
+  }
+
+  const btn = document.querySelector(".btn-add");
+  btn.disabled = true;
+  btn.textContent = "Ekleniyor…";
+  hideError();
+
+  try {
+    const res = await fetch("/manual-add", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, category, store, date }),
+    });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { showError(`Sunucu beklenmedik yanıt döndürdü:\n${text.slice(0, 400)}`); return; }
+
+    if (!data.ok) { showError(data.error); return; }
+
+    // Başarı: alanları temizle
+    document.getElementById("m_name").value = "";
+    document.getElementById("m_category").value = "";
+
+    // Bildirim çubuğunu güncelle
+    lastSavedProducts.push(name);
+    showNotifyBar();
+
+    const box = document.getElementById("errorBox");
+    box.style.background = "#052e16"; box.style.borderColor = "#16a34a"; box.style.color = "#86efac";
+    box.textContent = `✅ "${name}" eklendi.`;
+    box.style.display = "block";
+    setTimeout(() => { box.style.display = "none"; box.style.background = ""; box.style.borderColor = ""; box.style.color = ""; }, 3000);
+  } catch (err) {
+    showError(String(err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "+ Ekle";
+  }
 }
 
 function showSaveBar() {
@@ -586,11 +779,9 @@ function showError(msg) {
   box.textContent = "❌ " + msg;
   box.style.display = "block";
 }
-
 function hideError() {
   document.getElementById("errorBox").style.display = "none";
 }
-
 function esc(str) {
   return String(str)
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");

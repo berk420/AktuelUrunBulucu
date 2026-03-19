@@ -10,6 +10,13 @@ import { fetchOsmStores } from './api/overpassApi'
 import { haversineKm } from './utils/distance'
 
 const MAX_RADIUS_KM = 10
+const STALE_THRESHOLD_DAYS = 7
+
+function isStale(productBringDate) {
+  if (!productBringDate) return false
+  const diffMs = Date.now() - new Date(productBringDate).getTime()
+  return diffMs > STALE_THRESHOLD_DAYS * 24 * 60 * 60 * 1000
+}
 
 export default function App() {
   const [query, setQuery] = useState('')
@@ -21,6 +28,7 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [osmLoading, setOsmLoading] = useState(true)
   const [searchPerformed, setSearchPerformed] = useState(false)
+  const [staleWarning, setStaleWarning] = useState(false)
 
   useEffect(() => {
     // Konum al ve kaydet
@@ -58,6 +66,7 @@ export default function App() {
     setLoading(true)
     setNotFound(false)
     setMatchedProducts([])
+    setStaleWarning(false)
     setSearchPerformed(true)
 
     try {
@@ -66,6 +75,7 @@ export default function App() {
 
       if (result.found) {
         setMatchedProducts(result.matchedProducts)
+        setStaleWarning(result.matchedProducts.some(p => isStale(p.productBringDate)))
       } else {
         setNotFound(true)
         setLastQuery(query.trim())
@@ -108,6 +118,30 @@ export default function App() {
             <span style={{ fontSize: '13px', color: '#6b7280' }}>Ürün aranıyor...</span>
           </div>
         )}
+        {staleWarning && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            marginTop: '8px',
+            padding: '10px 14px',
+            background: '#fffbeb',
+            border: '1px solid #f59e0b',
+            borderRadius: '8px',
+            fontSize: '13px',
+            color: '#92400e',
+          }}>
+            <span>
+              ⚠️ Bu ürünün stoklara giriş tarihi <strong>{STALE_THRESHOLD_DAYS} günden</strong> fazla geçmiş — ürün tükenmiş olabilir.
+            </span>
+            <button
+              onClick={() => setStaleWarning(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#92400e', lineHeight: 1 }}
+            >✕</button>
+          </div>
+        )}
+
         <NotFoundMessage
           visible={notFound}
           searchedProduct={lastQuery}
