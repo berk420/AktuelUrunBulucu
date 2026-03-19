@@ -14,6 +14,7 @@ if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 set "DOCKER_DESKTOP=C:\Program Files\Docker\Docker\Docker Desktop.exe"
 set "DEVENV=C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\devenv.exe"
 set "SOLUTION=%ROOT%\Backend\AktuelUrunBulucu\AktuelUrunBulucu.slnx"
+set "GITHUB_DESKTOP=C:\Users\berk\AppData\Local\GitHubDesktop\GitHubDesktop.exe"
 
 :: --- 1. Docker Desktop ---
 echo [1/5] Docker Desktop kontrol ediliyor...
@@ -64,6 +65,12 @@ echo.
 echo [3/5] Visual Studio aciliyor...
 start "" "%DEVENV%" "%SOLUTION%"
 echo [OK] Visual Studio acildi.
+echo.
+
+:: --- GitHub Desktop ---
+echo GitHub Desktop aciliyor...
+start "" "%GITHUB_DESKTOP%"
+echo [OK] GitHub Desktop acildi.
 echo.
 
 :: --- 4. React Frontend ---
