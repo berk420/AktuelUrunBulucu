@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../api/overpass_api.dart';
@@ -34,12 +35,58 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _notifSubmitted = false;
   String _lastQuery = '';
 
+  InterstitialAd? _interstitialAd;
+  int _searchCount = 0;
+
+  // Test ID — canlıya alırken AdMob'dan aldığın gerçek ID ile değiştir
+  static const String _adUnitId = 'ca-app-pub-5451625013655025/3217423027';
+
   static const LatLng _defaultCenter = LatLng(39.9334, 32.8597);
 
   @override
   void initState() {
     super.initState();
     _init();
+    _loadInterstitialAd(showOnLoad: true);
+  }
+
+  void _loadInterstitialAd({bool showOnLoad = false}) {
+    InterstitialAd.load(
+      adUnitId: _adUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          if (showOnLoad) {
+            _showAd();
+          }
+        },
+        onAdFailedToLoad: (_) => _interstitialAd = null,
+      ),
+    );
+  }
+
+  void _showAd() {
+    if (_interstitialAd == null) return;
+    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _loadInterstitialAd();
+      },
+      onAdFailedToShowFullScreenContent: (ad, _) {
+        ad.dispose();
+        _loadInterstitialAd();
+      },
+    );
+    _interstitialAd!.show();
+    _interstitialAd = null;
+  }
+
+  void _showAdIfNeeded() {
+    _searchCount++;
+    if (_searchCount % 2 == 0) {
+      _showAd();
+    }
   }
 
   Future<void> _init() async {
@@ -111,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _products = result.products;
         _searching = false;
       });
+      _showAdIfNeeded();
 
       if (result.found && result.products.isNotEmpty) {
         _showResultsSheet();
@@ -119,6 +167,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       setState(() => _searching = false);
+      _showAdIfNeeded();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Arama hatası: $e')),
@@ -398,6 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _searchController.dispose();
     _emailController.dispose();
+    _interstitialAd?.dispose();
     super.dispose();
   }
 }

@@ -46,6 +46,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors();
 
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
 app.MapSearchEndpoints();
 app.MapLocationEndpoints();
 app.MapNotificationEndpoints();
