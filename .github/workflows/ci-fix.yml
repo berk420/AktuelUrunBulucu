@@ -1,0 +1,179 @@
+name: Apply CI Fix
+
+on:
+  workflow_dispatch:
+    inputs:
+      solution_json:
+        description: 'Seçilen çözümün JSON içeriği (generate-solutions.py çıktısından)'
+        required: true
+        type: string
+      component:
+        description: 'Hata veren bileşen'
+        required: true
+        type: choice
+        options: [backend, frontend, deploy]
+      original_run_id:
+        description: 'Orijinal başarısız run ID'
+        required: true
+        type: string
+
+jobs:
+  apply-fix:
+    name: Apply Selected Fix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
+
+      - name: Parse solution
+        id: parse
+        run: |
+          SOLUTION_TYPE=$(echo '${{ inputs.solution_json }}' | python3 -c "
+          import json, sys
+          sol = json.load(sys.stdin)
+          print(sol['type'])
+          ")
+          DESCRIPTION=$(echo '${{ inputs.solution_json }}' | python3 -c "
+          import json, sys
+          sol = json.load(sys.stdin)
+          print(sol['description'])
+          ")
+          echo "type=$SOLUTION_TYPE" >> "$GITHUB_OUTPUT"
+          echo "description=$DESCRIPTION" >> "$GITHUB_OUTPUT"
+          echo "Solution type: $SOLUTION_TYPE"
+          echo "Description: $DESCRIPTION"
+
+      # ── git_revert ────────────────────────────────────────────────────────
+      - name: Apply git revert
+        if: steps.parse.outputs.type == 'git_revert'
+        run: |
+          git config user.email "ci-bot@github.com"
+          git config user.name "CI Bot"
+          git revert HEAD --no-edit
+          git push origin main
+
+      # ── run_commands ──────────────────────────────────────────────────────
+      - name: Setup .NET (if needed for run_commands)
+        if: steps.parse.outputs.type == 'run_commands' && inputs.component == 'backend'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Setup Node (if needed for run_commands)
+        if: steps.parse.outputs.type == 'run_commands' && inputs.component == 'frontend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run commands
+        if: steps.parse.outputs.type == 'run_commands'
+        run: |
+          python3 - <<'PYEOF'
+          import json, subprocess, sys
+
+          solution_raw = '''${{ inputs.solution_json }}'''
+          sol = json.loads(solution_raw)
+          commands = sol.get("commands", [])
+
+          if not commands:
+              print("No commands to execute.")
+              sys.exit(0)
+
+          for cmd in commands:
+              print(f">> {cmd}")
+              result = subprocess.run(cmd, shell=True, text=True)
+              if result.returncode != 0:
+                  print(f"Command failed with exit code {result.returncode}", file=sys.stderr)
+                  sys.exit(result.returncode)
+
+          print("All commands executed successfully.")
+          PYEOF
+
+      - name: Commit and push if files changed
+        if: steps.parse.outputs.type == 'run_commands'
+        run: |
+          git config user.email "ci-bot@github.com"
+          git config user.name "CI Bot"
+          if ! git diff --quiet; then
+            git add -A
+            git commit -m "ci: auto-fix – ${{ steps.parse.outputs.description }}"
+            git push origin main
+          else
+            echo "No file changes to commit."
+          fi
+
+      # ── manual ───────────────────────────────────────────────────────────
+      - name: Prepare manual notification
+        if: steps.parse.outputs.type == 'manual'
+        run: |
+          echo "Manuel müdahale gerekiyor: ${{ steps.parse.outputs.description }}" > /tmp/manual_note.txt
+
+      # ── Sonuç e-postası ───────────────────────────────────────────────────
+      - name: Build result email
+        run: |
+          TYPE="${{ steps.parse.outputs.type }}"
+          DESC="${{ steps.parse.outputs.description }}"
+          COMPONENT="${{ inputs.component }}"
+          ORIG_RUN="${{ inputs.original_run_id }}"
+          REPO="${{ github.repository }}"
+          NEW_RUN="${{ github.run_id }}"
+
+          if [ "$TYPE" = "manual" ]; then
+            STATUS="⚠️ Manuel Müdahale Gerekiyor"
+            DETAIL="Bu hata otomatik düzeltilemedi. Lütfen kodu manuel olarak inceleyiniz."
+          else
+            STATUS="✅ Çözüm Uygulandı"
+            DETAIL="İşlem başarıyla tamamlandı."
+          fi
+
+          cat > /tmp/result_email.txt << EMAIL
+          ${STATUS} – AktuelUrunBulucu
+
+          Bileşen        : ${COMPONENT}
+          Seçilen çözüm  : ${DESC}
+          Durum          : ${DETAIL}
+
+          Orijinal run   : https://github.com/${REPO}/actions/runs/${ORIG_RUN}
+          Fix run        : https://github.com/${REPO}/actions/runs/${NEW_RUN}
+          EMAIL
+
+      - name: Send result email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[CI FIX] ${{ steps.parse.outputs.description }}"
+          to: ${{ secrets.MAIL_USERNAME }}
+          from: "CI Bot <${{ secrets.MAIL_USERNAME }}>"
+          body: file:///tmp/result_email.txt
+
+  # deploy işlemi git_revert veya run_commands commit'i tetikleyecek,
+  # ancak deploy için ayrı job (self-hosted) gerekebilir
+  deploy-after-fix:
+    name: Re-deploy after fix (deploy component only)
+    needs: apply-fix
+    if: inputs.component == 'deploy' && inputs.solution_json != ''
+    runs-on: [self-hosted, Windows]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run rollback script
+        shell: pwsh
+        run: scripts\rollback.ps1
+        if: contains(fromJson(inputs.solution_json).type, 'git_revert')
+
+      - name: Re-deploy backend
+        shell: pwsh
+        if: contains(fromJson(inputs.solution_json).description, 'deploy') || contains(fromJson(inputs.solution_json).description, 'yeniden')
+        run: scripts\deploy-backend.ps1
+
+      - name: Re-deploy frontend
+        shell: pwsh
+        if: contains(fromJson(inputs.solution_json).description, 'frontend') || contains(fromJson(inputs.solution_json).description, 'yeniden')
+        run: scripts\deploy-frontend.ps1

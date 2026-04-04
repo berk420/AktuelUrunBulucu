@@ -1,0 +1,279 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-backend:
+    name: Build Backend (.NET 10)
+    runs-on: ubuntu-latest
+    outputs:
+      failed: ${{ steps.set-failed.outputs.failed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Restore dependencies
+        working-directory: Backend/AktuelUrunBulucu
+        run: dotnet restore
+
+      - name: Build
+        id: build
+        working-directory: Backend/AktuelUrunBulucu
+        run: dotnet build --configuration Release --no-restore 2>&1 | tee /tmp/backend-build.log
+        continue-on-error: true
+
+      - name: Set failed output
+        id: set-failed
+        if: steps.build.outcome == 'failure'
+        run: echo "failed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload error log
+        if: steps.build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-error-log
+          path: /tmp/backend-build.log
+          retention-days: 1
+
+      - name: Fail job if build failed
+        if: steps.build.outcome == 'failure'
+        run: exit 1
+
+  build-frontend:
+    name: Build Frontend (React/Vite)
+    runs-on: ubuntu-latest
+    outputs:
+      failed: ${{ steps.set-failed.outputs.failed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: Frontend/AktuelUrunBulucu/package-lock.json
+
+      - name: Install dependencies
+        working-directory: Frontend/AktuelUrunBulucu
+        run: npm ci
+
+      - name: Lint
+        id: lint
+        working-directory: Frontend/AktuelUrunBulucu
+        run: npm run lint 2>&1 | tee /tmp/frontend-lint.log
+        continue-on-error: true
+
+      - name: Build
+        id: build
+        if: steps.lint.outcome == 'success'
+        working-directory: Frontend/AktuelUrunBulucu
+        run: npm run build 2>&1 | tee /tmp/frontend-build.log
+        continue-on-error: true
+
+      - name: Set failed output
+        id: set-failed
+        if: steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        run: echo "failed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Merge error logs
+        if: steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        run: |
+          cat /tmp/frontend-lint.log /tmp/frontend-build.log > /tmp/frontend-error.log 2>/dev/null || true
+
+      - name: Upload error log
+        if: steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-error-log
+          path: /tmp/frontend-error.log
+          retention-days: 1
+
+      - name: Fail job if build/lint failed
+        if: steps.lint.outcome == 'failure' || steps.build.outcome == 'failure'
+        run: exit 1
+
+  deploy:
+    name: Deploy to Windows Server
+    needs: [build-backend, build-frontend]
+    runs-on: [self-hosted, Windows]
+    if: success()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Backup current backend version
+        shell: pwsh
+        run: |
+          if (Test-Path "C:\deploy\backend") {
+            if (Test-Path "C:\deploy\backend-previous") {
+              Remove-Item "C:\deploy\backend-previous" -Recurse -Force
+            }
+            Copy-Item "C:\deploy\backend" "C:\deploy\backend-previous" -Recurse
+          }
+
+      - name: Publish backend
+        shell: pwsh
+        run: |
+          dotnet publish Backend/AktuelUrunBulucu/AktuelUrunBulucu.csproj `
+            --configuration Release `
+            --output C:\deploy\backend-new `
+            2>&1 | Tee-Object -FilePath C:\deploy\deploy-error.log
+
+      - name: Swap backend and restart service
+        shell: pwsh
+        run: |
+          Stop-Service AktuelUrunBulucu -ErrorAction SilentlyContinue
+          if (Test-Path "C:\deploy\backend") {
+            Remove-Item "C:\deploy\backend" -Recurse -Force
+          }
+          Rename-Item "C:\deploy\backend-new" "C:\deploy\backend"
+          Start-Service AktuelUrunBulucu
+
+      - name: Build and deploy frontend
+        shell: pwsh
+        working-directory: Frontend/AktuelUrunBulucu
+        run: |
+          npm ci
+          npm run build
+          if (Test-Path "C:\nginx\html") {
+            Remove-Item "C:\nginx\html\*" -Recurse -Force
+          }
+          Copy-Item "dist\*" "C:\nginx\html\" -Recurse
+          & C:\nginx\nginx.exe -s reload
+
+      - name: Upload deploy error log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-error-log
+          path: C:\deploy\deploy-error.log
+          retention-days: 1
+
+  notify-failure:
+    name: Notify Failure with AI Solutions
+    needs: [build-backend, build-frontend, deploy]
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: pip install anthropic
+
+      - name: Determine failed component
+        id: component
+        run: |
+          if [ "${{ needs.build-backend.result }}" = "failure" ]; then
+            echo "name=backend" >> "$GITHUB_OUTPUT"
+          elif [ "${{ needs.build-frontend.result }}" = "failure" ]; then
+            echo "name=frontend" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=deploy" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download error log
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.component.outputs.name }}-error-log
+          path: /tmp/error-logs/
+        continue-on-error: true
+
+      - name: Generate AI solutions
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          COMPONENT: ${{ steps.component.outputs.name }}
+          RUN_ID: ${{ github.run_id }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          ERROR_LOG=""
+          if [ -f "/tmp/error-logs/${{ steps.component.outputs.name }}-error.log" ]; then
+            ERROR_LOG=$(cat "/tmp/error-logs/${{ steps.component.outputs.name }}-error.log" | tail -100)
+          elif [ -f "/tmp/error-logs/${{ steps.component.outputs.name }}-build.log" ]; then
+            ERROR_LOG=$(cat "/tmp/error-logs/${{ steps.component.outputs.name }}-build.log" | tail -100)
+          else
+            ERROR_LOG="Hata logu mevcut değil."
+          fi
+          echo "$ERROR_LOG" > /tmp/error.log
+          python3 scripts/generate-solutions.py
+
+      - name: Upload solutions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: solutions-${{ github.run_id }}
+          path: /tmp/solutions.json
+          retention-days: 7
+
+      - name: Build email body
+        id: email
+        run: |
+          python3 - <<'EOF'
+          import json, os
+
+          with open("/tmp/solutions.json") as f:
+              data = json.load(f)
+
+          component = os.environ["COMPONENT"]
+          commit = os.environ["COMMIT_SHA"][:7]
+          actor = os.environ["ACTOR"]
+          run_id = os.environ["RUN_ID"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+
+          component_label = {"backend": "Backend (.NET 10)", "frontend": "Frontend (React/Vite)", "deploy": "Deploy (Windows Server)"}.get(component, component)
+
+          lines = [
+              f"❌ CI HATASI – AktuelUrunBulucu",
+              f"",
+              f"Bileşen : {component_label}",
+              f"Commit  : {commit}  |  Branch: main  |  Tetikleyen: {actor}",
+              f"",
+              f"── AI TARAFINDAN ÜRETİLEN ÇÖZÜM ÖNERİLERİ ─────────────────",
+              f"",
+          ]
+
+          for sol in data["solutions"]:
+              lines.append(f"{sol['id']}. {sol['description']}")
+
+          lines += [
+              f"",
+              f"─────────────────────────────────────────────────────────────",
+              f"Bu e-postayı yanıtlayın ve sadece seçtiğiniz numarayı yazın.",
+              f"",
+              f"Tam loglar: https://github.com/{repo}/actions/runs/{run_id}",
+          ]
+
+          body = "\n".join(lines)
+          with open("/tmp/email_body.txt", "w") as f:
+              f.write(body)
+          print("Email body written.")
+          EOF
+        env:
+          COMPONENT: ${{ steps.component.outputs.name }}
+          COMMIT_SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          RUN_ID: ${{ github.run_id }}
+
+      - name: Send failure email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[CI FAILURE] AktuelUrunBulucu | RUN:${{ github.run_id }} | COMPONENT:${{ steps.component.outputs.name }}"
+          to: ${{ secrets.MAIL_USERNAME }}
+          from: "CI Bot <${{ secrets.MAIL_USERNAME }}>"
+          body: file:///tmp/email_body.txt
