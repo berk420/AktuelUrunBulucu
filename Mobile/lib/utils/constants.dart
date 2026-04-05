@@ -1,4 +1,7 @@
-const String apiBaseUrl = 'http://10.0.2.2:5012'; // Android emulator → localhost
+const String apiBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://10.0.2.2:5012',
+);
 const String overpassUrl = 'https://overpass-api.de/api/interpreter';
 const String ipifyUrl = 'https://api.ipify.org?format=json';
 const double maxRadiusKm = 10.0;

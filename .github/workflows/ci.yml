@@ -5,6 +5,38 @@ on:
     branches: [main]
 
 jobs:
+  notify-start:
+    name: Notify CI Started
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send start notification
+        run: |
+          COMMIT="${{ github.sha }}"
+          COMMIT_SHORT="${COMMIT:0:7}"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "parse_mode=HTML" \
+            -d "text=🚀 <b>CI/CD Başladı – AktuelUrunBulucu</b>%0A%0ACommit: <code>$COMMIT_SHORT</code>%0ABranch: main%0ATetikleyen: ${{ github.actor }}"
+
+  check-mobile:
+    name: Check Mobile Changes
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check if Mobile directory changed
+        id: check
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -q "^Mobile/"; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build-backend:
     name: Build Backend (.NET 10)
     runs-on: ubuntu-latest
@@ -70,6 +102,59 @@ jobs:
           path: /tmp/frontend-error.log
           retention-days: 1
 
+  build-mobile:
+    name: Build Mobile (AAB + APK)
+    needs: check-mobile
+    if: needs.check-mobile.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.5'
+          channel: 'stable'
+
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > Mobile/aktuel-release.jks
+
+      - name: Flutter pub get
+        working-directory: Mobile
+        run: flutter pub get
+
+      - name: Build AAB
+        working-directory: Mobile
+        run: flutter build appbundle --release --dart-define-from-file=env/production.json
+
+      - name: Build APK
+        working-directory: Mobile
+        run: flutter build apk --release --dart-define-from-file=env/production.json
+
+      - name: Send AAB via Telegram
+        run: |
+          COMMIT="${{ github.sha }}"
+          COMMIT_SHORT="${COMMIT:0:7}"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -F "document=@Mobile/build/app/outputs/bundle/release/app-release.aab" \
+            -F "caption=📦 AAB – Release Build | $COMMIT_SHORT"
+
+      - name: Send APK via Telegram
+        run: |
+          COMMIT="${{ github.sha }}"
+          COMMIT_SHORT="${COMMIT:0:7}"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -F "document=@Mobile/build/app/outputs/flutter-apk/app-release.apk" \
+            -F "caption=📱 APK – Release Build | $COMMIT_SHORT"
+
   deploy:
     name: Deploy to Windows Server
     needs: [build-backend, build-frontend]
@@ -127,8 +212,8 @@ jobs:
           retention-days: 1
 
   notify:
-    name: Send Email Notification
-    needs: [build-backend, build-frontend, deploy]
+    name: Send Telegram Notification
+    needs: [build-backend, build-frontend, deploy, build-mobile]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -147,6 +232,10 @@ jobs:
             echo "result=failure" >> "$GITHUB_OUTPUT"
             echo "component=Deploy (Windows Server)" >> "$GITHUB_OUTPUT"
             echo "artifact=deploy-error-log" >> "$GITHUB_OUTPUT"
+          elif [ "${{ needs.build-mobile.result }}" = "failure" ]; then
+            echo "result=failure" >> "$GITHUB_OUTPUT"
+            echo "component=Mobile (Flutter)" >> "$GITHUB_OUTPUT"
+            echo "artifact=" >> "$GITHUB_OUTPUT"
           else
             echo "result=success" >> "$GITHUB_OUTPUT"
             echo "component=Tüm adımlar" >> "$GITHUB_OUTPUT"
@@ -154,14 +243,14 @@ jobs:
           fi
 
       - name: Download error log
-        if: steps.status.outputs.result == 'failure'
+        if: steps.status.outputs.result == 'failure' && steps.status.outputs.artifact != ''
         uses: actions/download-artifact@v4
         with:
           name: ${{ steps.status.outputs.artifact }}
           path: /tmp/error-logs/
         continue-on-error: true
 
-      - name: Build email body
+      - name: Send Telegram notification
         run: |
           COMMIT="${{ github.sha }}"
           COMMIT_SHORT="${COMMIT:0:7}"
@@ -172,64 +261,20 @@ jobs:
           RESULT="${{ steps.status.outputs.result }}"
 
           if [ "$RESULT" = "success" ]; then
-            cat > /tmp/email_body.txt << EOF
-          ✅ CI BAŞARILI – AktuelUrunBulucu
-
-          Commit  : $COMMIT_SHORT  |  Branch: main  |  Tetikleyen: $ACTOR
-
-          Tüm adımlar başarıyla tamamlandı ve deploy edildi.
-
-          Detaylar: https://github.com/$REPO/actions/runs/$RUN_ID
-          EOF
+            MESSAGE="✅ <b>CI BAŞARILI – AktuelUrunBulucu</b>%0A%0ACommit: <code>$COMMIT_SHORT</code> | Branch: main | Tetikleyen: $ACTOR%0A%0ATüm adımlar başarıyla tamamlandı.%0A%0A<a href=\"https://github.com/$REPO/actions/runs/$RUN_ID\">Detaylar</a>"
           else
             ERROR_LOG="Hata logu indirilemedi."
             for f in /tmp/error-logs/*; do
               if [ -f "$f" ]; then
-                ERROR_LOG=$(tail -100 "$f")
+                ERROR_LOG=$(tail -30 "$f")
                 break
               fi
             done
-
-            cat > /tmp/email_body.txt << EOF
-          ❌ CI HATASI – AktuelUrunBulucu
-
-          Bileşen : $COMPONENT
-          Commit  : $COMMIT_SHORT  |  Branch: main  |  Tetikleyen: $ACTOR
-
-          ── HATA LOGU ────────────────────────────────────────────────
-
-          $ERROR_LOG
-
-          ─────────────────────────────────────────────────────────────
-
-          Tam loglar: https://github.com/$REPO/actions/runs/$RUN_ID
-          EOF
+            MESSAGE="❌ <b>CI HATASI – AktuelUrunBulucu</b>%0A%0ABileşen: $COMPONENT%0ACommit: <code>$COMMIT_SHORT</code> | Branch: main | Tetikleyen: $ACTOR%0A%0A<pre>$(echo "$ERROR_LOG" | head -c 2000)</pre>%0A%0A<a href=\"https://github.com/$REPO/actions/runs/$RUN_ID\">Tam loglar</a>"
           fi
 
-      - name: Send success email
-        if: steps.status.outputs.result == 'success'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          secure: false
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "[CI SUCCESS] AktuelUrunBulucu | ${{ github.sha }}"
-          to: ${{ secrets.MAIL_USERNAME }}
-          from: "CI Bot <${{ secrets.MAIL_USERNAME }}>"
-          body: file:///tmp/email_body.txt
-
-      - name: Send failure email
-        if: steps.status.outputs.result == 'failure'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          secure: false
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "[CI FAILURE] AktuelUrunBulucu | ${{ steps.status.outputs.component }}"
-          to: ${{ secrets.MAIL_USERNAME }}
-          from: "CI Bot <${{ secrets.MAIL_USERNAME }}>"
-          body: file:///tmp/email_body.txt
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "text=$MESSAGE" \
+            -d "parse_mode=HTML" \
+            -d "disable_web_page_preview=true"
