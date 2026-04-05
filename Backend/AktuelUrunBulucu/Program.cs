@@ -2,7 +2,9 @@ using AktuelUrunBulucu.BLL.Services;
 using AktuelUrunBulucu.DAL.Context;
 using AktuelUrunBulucu.DAL.Repositories;
 using AktuelUrunBulucu.Endpoints;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,20 @@ builder.Services.AddScoped<IMailService, MailService>();
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Rate Limiting
+const int SearchRateLimitPerMinute = 10;
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("search", limiter =>
+    {
+        limiter.PermitLimit = SearchRateLimitPerMinute;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiter.QueueLimit = 0;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 // CORS
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
@@ -46,6 +62,7 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors();
+app.UseRateLimiter();
 
 app.MapGet("/health", () => Results.Ok(new { status = "okey" }));
 

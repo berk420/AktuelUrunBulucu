@@ -37,6 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   InterstitialAd? _interstitialAd;
   int _searchCount = 0;
+  int _rateLimitCount = 0;
+  DateTime _rateLimitWindowStart = DateTime.now();
 
   // Test ID — canlıya alırken AdMob'dan aldığın gerçek ID ile değiştir
   static const String _adUnitId = 'ca-app-pub-5451625013655025/3217423027';
@@ -144,6 +146,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _search() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) return;
+
+    final now = DateTime.now();
+    if (now.difference(_rateLimitWindowStart).inMinutes >= 1) {
+      _rateLimitWindowStart = now;
+      _rateLimitCount = 0;
+    }
+    _rateLimitCount++;
+    if (_rateLimitCount > searchRateLimitPerMinute) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🛑 Çok fazla arama yaptınız. Biraz dinlenin, 1 dakika sonra tekrar deneyin.'),
+            backgroundColor: Color(0xFFef4444),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() {
       _searching = true;
       _notifSubmitted = false;

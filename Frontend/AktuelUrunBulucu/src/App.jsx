@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 import { Loader } from '@progress/kendo-react-indicators'
 import SearchBar from './components/SearchBar'
@@ -11,6 +11,8 @@ import { haversineKm } from './utils/distance'
 
 const MAX_RADIUS_KM = 10
 const STALE_THRESHOLD_DAYS = 7
+const RATE_LIMIT = 10
+const RATE_LIMIT_WINDOW_MS = 60_000
 
 function isStale(productBringDate) {
   if (!productBringDate) return false
@@ -29,6 +31,9 @@ export default function App() {
   const [osmLoading, setOsmLoading] = useState(true)
   const [searchPerformed, setSearchPerformed] = useState(false)
   const [staleWarning, setStaleWarning] = useState(false)
+  const [rateLimitWarning, setRateLimitWarning] = useState(false)
+  const searchCountRef = useRef(0)
+  const windowStartRef = useRef(Date.now())
 
   useEffect(() => {
     // Konum al ve kaydet
@@ -63,10 +68,22 @@ export default function App() {
   async function handleSearch() {
     if (!query.trim()) return
 
+    const now = Date.now()
+    if (now - windowStartRef.current > RATE_LIMIT_WINDOW_MS) {
+      windowStartRef.current = now
+      searchCountRef.current = 0
+    }
+    searchCountRef.current += 1
+    if (searchCountRef.current > RATE_LIMIT) {
+      setRateLimitWarning(true)
+      return
+    }
+
     setLoading(true)
     setNotFound(false)
     setMatchedProducts([])
     setStaleWarning(false)
+    setRateLimitWarning(false)
     setSearchPerformed(true)
 
     try {
@@ -138,6 +155,28 @@ export default function App() {
             <button
               onClick={() => setStaleWarning(false)}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#92400e', lineHeight: 1 }}
+            >✕</button>
+          </div>
+        )}
+
+        {rateLimitWarning && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            marginTop: '8px',
+            padding: '10px 14px',
+            background: '#fef2f2',
+            border: '1px solid #ef4444',
+            borderRadius: '8px',
+            fontSize: '13px',
+            color: '#991b1b',
+          }}>
+            <span>🛑 Çok fazla arama yaptınız. Biraz dinlenin, 1 dakika sonra tekrar deneyin.</span>
+            <button
+              onClick={() => setRateLimitWarning(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#991b1b', lineHeight: 1 }}
             >✕</button>
           </div>
         )}

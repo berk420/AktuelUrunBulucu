@@ -5,6 +5,7 @@ const String apiBaseUrl = String.fromEnvironment(
 const String overpassUrl = 'https://overpass-api.de/api/interpreter';
 const String ipifyUrl = 'https://api.ipify.org?format=json';
 const double maxRadiusKm = 10.0;
+const int searchRateLimitPerMinute = 10;
 
 const List<Map<String, dynamic>> distanceRings = [
   {'radius': 1000.0, 'label': '1 km', 'color': 0xFF22c55e},

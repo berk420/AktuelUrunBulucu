@@ -15,6 +15,7 @@ public static class SearchEndpoints
             return Results.Ok(result);
         })
         .WithName("SearchProducts")
-        .WithTags("Search");
+        .WithTags("Search")
+        .RequireRateLimiting("search");
     }
 }
