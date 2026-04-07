@@ -1,0 +1,36 @@
+name: Mobile APK Build & Telegram
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Mobile/**'
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    steps:
+      - name: Kodu çek
+        uses: actions/checkout@v4
+
+      - name: Flutter kurulumunu kontrol et
+        run: flutter --version
+
+      - name: Bağımlılıkları yükle
+        working-directory: Mobile
+        run: flutter pub get
+
+      - name: APK oluştur
+        working-directory: Mobile
+        run: flutter build apk --release
+
+      - name: APK'yı Telegram'a gönder
+        shell: bash
+        run: |
+          APK_PATH="Mobile/build/app/outputs/flutter-apk/app-release.apk"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -F document=@"$APK_PATH" \
+            -F caption="✅ Yeni APK hazır! Commit: ${{ github.sha }}"

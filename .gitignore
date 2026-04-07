@@ -23,3 +23,6 @@ ProductDataProvider/config.py
 # OS
 .DS_Store
 Thumbs.db
+
+# GitHub Actions self-hosted runner
+actions-runner/
