@@ -216,7 +216,9 @@ jobs:
             Remove-Item "C:\nginx\html\*" -Recurse -Force
           }
           Copy-Item "C:\deploy\frontend-dist\*" "C:\nginx\html\" -Recurse
-          & C:\nginx\nginx.exe -s reload
+          if (Test-Path "C:\nginx\nginx.exe") {
+            & C:\nginx\nginx.exe -s reload
+          }
 
       - name: Upload deploy error log
         if: failure()
