@@ -143,6 +143,16 @@ jobs:
           path: Mobile/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk
           retention-days: 7
 
+      - name: Telegram APK linkini gönder
+        run: |
+          COMMIT="${{ github.sha }}"
+          COMMIT_SHORT="${COMMIT:0:7}"
+          URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+            -d "parse_mode=HTML" \
+            -d "text=📱 <b>APK hazır!</b>%0ACommit: <code>$COMMIT_SHORT</code>%0A%0Aİndir: <a href=\"$URL\">Actions sayfasına git → apk-debug</a>"
+
   deploy:
     name: Deploy to Windows Server
     needs: [build-backend, build-frontend]
