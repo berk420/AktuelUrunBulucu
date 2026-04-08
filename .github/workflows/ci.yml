@@ -111,7 +111,7 @@ jobs:
           retention-days: 1
 
   build-mobile:
-    name: Build Mobile (AAB + APK)
+    name: Build Mobile (APK)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -135,22 +135,9 @@ jobs:
         working-directory: Mobile
         run: flutter pub get
 
-      - name: Build AAB
-        working-directory: Mobile
-        run: flutter build appbundle --release --dart-define-from-file=env/production.json
-
       - name: Build APK
         working-directory: Mobile
         run: flutter build apk --release --dart-define-from-file=env/production.json
-
-      - name: Send AAB via Telegram
-        run: |
-          COMMIT="${{ github.sha }}"
-          COMMIT_SHORT="${COMMIT:0:7}"
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
-            -F "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-            -F "document=@Mobile/build/app/outputs/bundle/release/app-release.aab" \
-            -F "caption=📦 AAB – Release Build | $COMMIT_SHORT"
 
       - name: Send APK via Telegram
         run: |
