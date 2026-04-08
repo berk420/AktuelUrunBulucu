@@ -75,7 +75,36 @@ public class AppDbContext : DbContext
             new Product { Id = 27, Name = "El Arabası Plastik Bahçe",              Category = "Bahçe & Piknik",       StoreName = "Şok",         ProductBringDate = new DateTime(2026, 4, 10, 0, 0, 0, DateTimeKind.Utc) },
             new Product { Id = 28, Name = "Merdiven 5 Basamak Alüminyum",          Category = "Araç Gereç",           StoreName = "Migros",      ProductBringDate = new DateTime(2026, 3, 25, 0, 0, 0, DateTimeKind.Utc) },
             new Product { Id = 29, Name = "Şişme Havuz 300x200cm Aile",            Category = "Yaz & Havuz",          StoreName = "CarrefourSA", ProductBringDate = new DateTime(2026, 5,  1, 0, 0, 0, DateTimeKind.Utc) },
-            new Product { Id = 30, Name = "Güneş Şemsiyesi 2m UV Korumalı",        Category = "Yaz & Havuz",          StoreName = "CarrefourSA", ProductBringDate = new DateTime(2026, 5,  1, 0, 0, 0, DateTimeKind.Utc) }
+            new Product { Id = 30, Name = "Güneş Şemsiyesi 2m UV Korumalı",        Category = "Yaz & Havuz",          StoreName = "CarrefourSA", ProductBringDate = new DateTime(2026, 5,  1, 0, 0, 0, DateTimeKind.Utc) },
+
+            // Mangal ürünleri
+            new Product { Id = 31, Name = "Mangal Kömürlü Set Takım Çantalı",       Category = "Bahçe & Piknik",       StoreName = "BİM",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 32, Name = "Mangal Büyük Boy Aile Mangalı",           Category = "Bahçe & Piknik",       StoreName = "A101",        ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 33, Name = "Mangal Portatif Katlanır Kamp Mangalı",   Category = "Bahçe & Piknik",       StoreName = "Migros",      ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 34, Name = "Mangal Gazlı Taşınabilir 2 Gözlü",        Category = "Bahçe & Piknik",       StoreName = "CarrefourSA", ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 35, Name = "Mangal Elektrikli İç Mekan 2000W",        Category = "Bahçe & Piknik",       StoreName = "Şok",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 36, Name = "Mangal Kömürü 5kg Doğal Meyve Odunu",     Category = "Bahçe & Piknik",       StoreName = "BİM",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 37, Name = "Mangal Kömürü 10kg Premium",              Category = "Bahçe & Piknik",       StoreName = "A101",        ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 38, Name = "Mangal Ateş Tutuşturucu Jel 500ml",       Category = "Bahçe & Piknik",       StoreName = "Migros",      ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 39, Name = "Mangal Izgara Teli 40x60cm Paslanmaz",    Category = "Bahçe & Piknik",       StoreName = "CarrefourSA", ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 40, Name = "Mangal Maşa Spatula Set 5 Parça",         Category = "Bahçe & Piknik",       StoreName = "Şok",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 41, Name = "Mangal Eldiveni Isıya Dayanıklı Çift",    Category = "Bahçe & Piknik",       StoreName = "BİM",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 42, Name = "Mangal Izgarası Döküm Demir 50cm",        Category = "Bahçe & Piknik",       StoreName = "A101",        ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 43, Name = "Mangal Barbekü Sis Şişi 12li Set",        Category = "Bahçe & Piknik",       StoreName = "Migros",      ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 44, Name = "Mangal Alüminyum Folyo Tepsi 5li",        Category = "Bahçe & Piknik",       StoreName = "CarrefourSA", ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 45, Name = "Mangal Çantalı Piknik Seti 20 Parça",     Category = "Bahçe & Piknik",       StoreName = "Şok",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+
+            // Powerbank ürünleri
+            new Product { Id = 46, Name = "Powerbank 5000mAh Slim Taşınabilir",      Category = "Elektronik",           StoreName = "BİM",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 47, Name = "Powerbank 10000mAh Hızlı Şarj 22.5W",    Category = "Elektronik",           StoreName = "A101",        ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 48, Name = "Powerbank 20000mAh Çift USB Çıkış",       Category = "Elektronik",           StoreName = "Migros",      ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 49, Name = "Powerbank 20000mAh PD 65W Laptop",        Category = "Elektronik",           StoreName = "CarrefourSA", ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 50, Name = "Powerbank 30000mAh Süper Kapasite",       Category = "Elektronik",           StoreName = "Şok",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 51, Name = "Powerbank Kablosuz Şarjlı 15W MagSafe",  Category = "Elektronik",           StoreName = "BİM",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 52, Name = "Powerbank Solar Güneş Enerjili 10000mAh", Category = "Elektronik",           StoreName = "A101",        ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 53, Name = "Powerbank Mini Anahtarlık 1500mAh",       Category = "Elektronik",           StoreName = "Migros",      ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 54, Name = "Powerbank 10000mAh Led Göstergeli",       Category = "Elektronik",           StoreName = "CarrefourSA", ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) },
+            new Product { Id = 55, Name = "Powerbank 25000mAh 4 Portlu Hızlı Şarj", Category = "Elektronik",           StoreName = "Şok",         ProductBringDate = new DateTime(2026, 4,  8, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 }
