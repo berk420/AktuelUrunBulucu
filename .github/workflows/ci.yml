@@ -189,6 +189,10 @@ jobs:
             Remove-Item "C:\deploy\backend" -Recurse -Force
           }
           Rename-Item "C:\deploy\backend-new" "C:\deploy\backend"
+          $svc = Get-Service -Name "AktuelUrunBulucu" -ErrorAction SilentlyContinue
+          if (-not $svc) {
+            New-Service -Name "AktuelUrunBulucu" -BinaryPathName "C:\deploy\backend\AktuelUrunBulucu.exe" -DisplayName "AktuelUrunBulucu" -StartupType Automatic
+          }
           Start-Service AktuelUrunBulucu
 
       - name: Build and deploy frontend
