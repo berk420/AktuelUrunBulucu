@@ -102,6 +102,14 @@ jobs:
           path: /tmp/frontend-error.log
           retention-days: 1
 
+      - name: Upload frontend build
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: Frontend/AktuelUrunBulucu/dist
+          retention-days: 1
+
   build-mobile:
     name: Build Mobile (AAB + APK)
     needs: check-mobile
@@ -195,16 +203,19 @@ jobs:
           }
           Start-Service AktuelUrunBulucu
 
-      - name: Build and deploy frontend
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: C:\deploy\frontend-dist
+
+      - name: Deploy frontend
         shell: powershell
-        working-directory: Frontend/AktuelUrunBulucu
         run: |
-          npm ci
-          npm run build
           if (Test-Path "C:\nginx\html") {
             Remove-Item "C:\nginx\html\*" -Recurse -Force
           }
-          Copy-Item "dist\*" "C:\nginx\html\" -Recurse
+          Copy-Item "C:\deploy\frontend-dist\*" "C:\nginx\html\" -Recurse
           & C:\nginx\nginx.exe -s reload
 
       - name: Upload deploy error log
