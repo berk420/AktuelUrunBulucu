@@ -64,7 +64,7 @@ app.UseSwaggerUI();
 app.UseCors();
 app.UseRateLimiter();
 
-app.MapGet("/health", () => Results.Ok(new { status = "okey" }));
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 app.MapSearchEndpoints();
 app.MapLocationEndpoints();

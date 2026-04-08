@@ -1,6 +1,6 @@
-@AktuelUrunBulucu_HostAddress = http://localhost:5012
+@AktuelUrunBulucu_HostAddress = https://api.aktuelurunbulucu.com.tr
 
-GET {{AktuelUrunBulucu_HostAddress}}/weatherforecast/
+GET {{AktuelUrunBulucu_HostAddress}}/health
 Accept: application/json
 
 ###
