@@ -164,7 +164,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Backup current backend version
-        shell: pwsh
+        shell: powershell
         run: |
           if (Test-Path "C:\deploy\backend") {
             if (Test-Path "C:\deploy\backend-previous") {
@@ -174,7 +174,7 @@ jobs:
           }
 
       - name: Publish backend
-        shell: pwsh
+        shell: powershell
         run: |
           dotnet publish Backend/AktuelUrunBulucu/AktuelUrunBulucu.csproj `
             --configuration Release `
@@ -182,7 +182,7 @@ jobs:
             2>&1 | Tee-Object -FilePath C:\deploy\deploy-error.log
 
       - name: Swap backend and restart service
-        shell: pwsh
+        shell: powershell
         run: |
           Stop-Service AktuelUrunBulucu -ErrorAction SilentlyContinue
           if (Test-Path "C:\deploy\backend") {
@@ -192,7 +192,7 @@ jobs:
           Start-Service AktuelUrunBulucu
 
       - name: Build and deploy frontend
-        shell: pwsh
+        shell: powershell
         working-directory: Frontend/AktuelUrunBulucu
         run: |
           npm ci
