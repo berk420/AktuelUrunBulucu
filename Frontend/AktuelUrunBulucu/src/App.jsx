@@ -40,6 +40,7 @@ export default function App() {
   const [panelOpen, setPanelOpen] = useState(true)
   const [dragX, setDragX] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const searchCountRef = useRef(0)
   const windowStartRef = useRef(Date.now())
   const dragStartX = useRef(0)
@@ -54,6 +55,7 @@ export default function App() {
     if (matchedProducts.length > 0) {
       setPanelOpen(true)
       setDragX(0)
+      setSelectedProduct(null)
     }
   }, [matchedProducts])
 
@@ -248,6 +250,7 @@ export default function App() {
               matchedStoreNames={matchedStoreNames}
               userCoords={userCoords}
               searchPerformed={searchPerformed}
+              selectedProduct={selectedProduct}
             />
           )}
         </div>
@@ -260,7 +263,11 @@ export default function App() {
             background: '#f9fafb',
             borderLeft: '1px solid #e5e7eb'
           }}>
-            <StoreList products={matchedProducts} />
+            <StoreList
+              products={matchedProducts}
+              selectedProduct={selectedProduct}
+              onProductClick={setSelectedProduct}
+            />
           </div>
         )}
 
@@ -276,7 +283,9 @@ export default function App() {
                 width: `${PANEL_WIDTH}px`,
                 background: '#f9fafb',
                 borderLeft: '1px solid #e5e7eb',
-                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
                 zIndex: 500,
                 transform: panelOpen
                   ? `translateX(${dragX}px)`
@@ -313,8 +322,46 @@ export default function App() {
                 <span style={{ fontSize: '9px', writingMode: 'vertical-rl', letterSpacing: '0.5px', opacity: 0.8 }}>KAPAT</span>
               </div>
 
-              <div style={{ padding: '16px' }}>
-                <StoreList products={matchedProducts} />
+              {/* Panel başlık — X butonu */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                borderBottom: '1px solid #e5e7eb',
+                background: '#fff',
+                flexShrink: 0,
+              }}>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>
+                  {matchedProducts.length} sonuç bulundu
+                </span>
+                <button
+                  onClick={() => setPanelOpen(false)}
+                  style={{
+                    background: '#374151',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '28px',
+                    height: '28px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1,
+                    flexShrink: 0,
+                  }}
+                >✕</button>
+              </div>
+
+              {/* Kaydırılabilir içerik */}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+                <StoreList
+                  products={matchedProducts}
+                  selectedProduct={selectedProduct}
+                  onProductClick={setSelectedProduct}
+                />
               </div>
             </div>
 

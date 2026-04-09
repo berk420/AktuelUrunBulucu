@@ -1,6 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet'
 import { useEffect } from 'react'
 import L from 'leaflet'
+import { haversineKm } from '../utils/distance'
 
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -53,6 +54,31 @@ function RecenterMap({ coords }) {
   return null
 }
 
+/// <summary>
+/// Seçili ürünün zinciriyle eşleşen en yakın OSM mağazasına haritayı uçurur.
+/// </summary>
+function FlyToNearestStore({ osmStores, selectedStoreName, userCoords }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!selectedStoreName || !userCoords) return
+
+    const matching = osmStores.filter(s =>
+      matchesStoreName(s.chain, s.name, selectedStoreName)
+    )
+    if (matching.length === 0) return
+
+    const nearest = matching.reduce((best, s) => {
+      const d = haversineKm(userCoords.latitude, userCoords.longitude, s.lat, s.lon)
+      return d < best.dist ? { store: s, dist: d } : best
+    }, { store: matching[0], dist: Infinity })
+
+    map.flyTo([nearest.store.lat, nearest.store.lon], 16, { duration: 1.2 })
+  }, [selectedStoreName, osmStores, userCoords, map])
+
+  return null
+}
+
 // OSM store'un chain'i, arama sonucundaki storeName ile eşleşiyor mu?
 function matchesStoreName(osmChain, osmName, storeName) {
   if (!storeName) return false
@@ -69,8 +95,11 @@ const DISTANCE_RINGS = [
   { radius: 5000, color: '#ef4444', label: '5 km' },
 ]
 
-export default function Map({ osmStores, matchedStoreNames, userCoords, searchPerformed }) {
-  const highlighted = new Set(matchedStoreNames.map(n => n.toLowerCase()))
+export default function Map({ osmStores, matchedStoreNames, userCoords, searchPerformed, selectedProduct }) {
+  // Ürün seçiliyse sadece o zinciri vurgula, yoksa tüm eşleşenleri göster
+  const highlighted = selectedProduct
+    ? new Set([selectedProduct.storeName.toLowerCase()])
+    : new Set(matchedStoreNames.map(n => n.toLowerCase()))
 
   return (
     <MapContainer
@@ -84,6 +113,15 @@ export default function Map({ osmStores, matchedStoreNames, userCoords, searchPe
       />
 
       {userCoords && <RecenterMap coords={userCoords} />}
+
+      {/* Ürün seçilince en yakın mağazaya uç */}
+      {selectedProduct && userCoords && (
+        <FlyToNearestStore
+          osmStores={osmStores}
+          selectedStoreName={selectedProduct.storeName}
+          userCoords={userCoords}
+        />
+      )}
 
       {/* Kullanıcı konumu marker */}
       {userCoords && (
