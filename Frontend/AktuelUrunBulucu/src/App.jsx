@@ -268,9 +268,6 @@ export default function App() {
         {matchedProducts.length > 0 && isMobile && (
           <>
             <div
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -288,26 +285,31 @@ export default function App() {
                 boxShadow: '-4px 0 16px rgba(0,0,0,0.12)',
               }}
             >
-              {/* Sürükleme kolu */}
-              <div style={{
-                position: 'absolute',
-                left: '-36px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: '#374151',
-                color: '#fff',
-                width: '36px',
-                padding: '16px 0',
-                borderRadius: '10px 0 0 10px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '4px',
-                cursor: 'grab',
-                touchAction: 'none',
-                userSelect: 'none',
-              }}>
-                <span style={{ fontSize: '18px', lineHeight: 1 }}>›</span>
+              {/* Sürükleme kolu — touch event'ler SADECE burada */}
+              <div
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                style={{
+                  position: 'absolute',
+                  left: '-48px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: '#374151',
+                  color: '#fff',
+                  width: '48px',
+                  padding: '24px 0',
+                  borderRadius: '12px 0 0 12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'grab',
+                  touchAction: 'none',
+                  userSelect: 'none',
+                  boxShadow: '-2px 0 8px rgba(0,0,0,0.2)',
+                }}>
+                <span style={{ fontSize: '20px', lineHeight: 1 }}>›</span>
                 <span style={{ fontSize: '9px', writingMode: 'vertical-rl', letterSpacing: '0.5px', opacity: 0.8 }}>KAPAT</span>
               </div>
 
