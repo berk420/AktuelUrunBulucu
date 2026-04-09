@@ -138,25 +138,25 @@ jobs:
         working-directory: Mobile
         run: flutter build apk --debug --split-per-abi --dart-define-from-file=env/production.json
 
-      - name: APK boyutunu göster
-        run: ls -lh Mobile/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk
-
-      - name: APK artifact olarak yükle
-        uses: actions/upload-artifact@v4
+      - name: APK Release olarak yayınla
+        uses: softprops/action-gh-release@v2
         with:
-          name: apk-debug
-          path: Mobile/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk
-          retention-days: 7
+          tag_name: apk-${{ github.sha }}
+          name: APK – ${{ github.sha }}
+          files: Mobile/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Telegram APK linkini gönder
         run: |
           COMMIT="${{ github.sha }}"
           COMMIT_SHORT="${COMMIT:0:7}"
-          URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          URL="https://github.com/${{ github.repository }}/releases/download/apk-$COMMIT/app-arm64-v8a-debug.apk"
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
             -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
             -d "parse_mode=HTML" \
-            -d "text=📱 <b>APK hazır!</b>%0ACommit: <code>$COMMIT_SHORT</code>%0A%0Aİndir: <a href=\"$URL\">Actions sayfasına git → apk-debug</a>"
+            -d "text=📱 <b>APK hazır!</b>%0ACommit: <code>$COMMIT_SHORT</code>%0A%0A<a href=\"$URL\">APK İndir (.apk)</a>"
 
   deploy:
     name: Deploy to Windows Server
