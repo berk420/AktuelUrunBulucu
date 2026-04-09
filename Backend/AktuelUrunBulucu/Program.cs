@@ -60,6 +60,9 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors();
@@ -70,5 +73,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapSearchEndpoints();
 app.MapLocationEndpoints();
 app.MapNotificationEndpoints();
+
+app.MapFallbackToFile("index.html");
 
 app.Run();

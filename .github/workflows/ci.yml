@@ -186,6 +186,16 @@ jobs:
             --output C:\deploy\backend-new `
             2>&1 | Tee-Object -FilePath C:\deploy\deploy-error.log
 
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: C:\deploy\frontend-dist
+
+      - name: Stop nginx if running
+        shell: powershell
+        run: Stop-Process -Name "nginx" -Force -ErrorAction SilentlyContinue
+
       - name: Swap backend and restart service
         shell: powershell
         run: |
@@ -194,28 +204,15 @@ jobs:
             Remove-Item "C:\deploy\backend" -Recurse -Force
           }
           Rename-Item "C:\deploy\backend-new" "C:\deploy\backend"
+          $wwwroot = "C:\deploy\backend\wwwroot"
+          if (-not (Test-Path $wwwroot)) { New-Item -ItemType Directory -Path $wwwroot | Out-Null }
+          Remove-Item "$wwwroot\*" -Recurse -Force -ErrorAction SilentlyContinue
+          Copy-Item "C:\deploy\frontend-dist\*" $wwwroot -Recurse
           $svc = Get-Service -Name "AktuelUrunBulucu" -ErrorAction SilentlyContinue
           if (-not $svc) {
             New-Service -Name "AktuelUrunBulucu" -BinaryPathName "C:\deploy\backend\AktuelUrunBulucu.exe" -DisplayName "AktuelUrunBulucu" -StartupType Automatic
           }
           Start-Service AktuelUrunBulucu
-
-      - name: Download frontend build
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: C:\deploy\frontend-dist
-
-      - name: Deploy frontend
-        shell: powershell
-        run: |
-          if (Test-Path "C:\nginx\html") {
-            Remove-Item "C:\nginx\html\*" -Recurse -Force
-          }
-          Copy-Item "C:\deploy\frontend-dist\*" "C:\nginx\html\" -Recurse
-          if (Test-Path "C:\nginx\nginx.exe") {
-            & C:\nginx\nginx.exe -s reload
-          }
 
       - name: Upload deploy error log
         if: failure()
