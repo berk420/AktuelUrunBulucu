@@ -115,6 +115,8 @@ jobs:
     needs: check-mobile
     if: needs.check-mobile.outputs.changed == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
