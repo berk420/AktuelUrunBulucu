@@ -186,16 +186,6 @@ jobs:
             --output C:\deploy\backend-new `
             2>&1 | Tee-Object -FilePath C:\deploy\deploy-error.log
 
-      - name: Download frontend build
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: C:\deploy\frontend-dist
-
-      - name: Stop nginx if running
-        shell: powershell
-        run: Stop-Process -Name "nginx" -Force -ErrorAction SilentlyContinue
-
       - name: Swap backend and restart service
         shell: powershell
         run: |
@@ -204,15 +194,34 @@ jobs:
             Remove-Item "C:\deploy\backend" -Recurse -Force
           }
           Rename-Item "C:\deploy\backend-new" "C:\deploy\backend"
-          $wwwroot = "C:\deploy\backend\wwwroot"
-          if (-not (Test-Path $wwwroot)) { New-Item -ItemType Directory -Path $wwwroot | Out-Null }
-          Remove-Item "$wwwroot\*" -Recurse -Force -ErrorAction SilentlyContinue
-          Copy-Item "C:\deploy\frontend-dist\*" $wwwroot -Recurse
           $svc = Get-Service -Name "AktuelUrunBulucu" -ErrorAction SilentlyContinue
           if (-not $svc) {
             New-Service -Name "AktuelUrunBulucu" -BinaryPathName "C:\deploy\backend\AktuelUrunBulucu.exe" -DisplayName "AktuelUrunBulucu" -StartupType Automatic
           }
           Start-Service AktuelUrunBulucu
+
+      - name: Clean previous frontend dist
+        shell: powershell
+        run: |
+          if (Test-Path "C:\deploy\frontend-dist") {
+            Remove-Item "C:\deploy\frontend-dist" -Recurse -Force
+          }
+
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: C:\deploy\frontend-dist
+
+      - name: Deploy frontend to IIS
+        shell: powershell
+        run: |
+          $target = "C:\inetpub\wwwroot\AktuelFrontend"
+          if (Test-Path $target) {
+            Remove-Item "$target\*" -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path $target -Force | Out-Null
+          Copy-Item "C:\deploy\frontend-dist\*" "$target\" -Recurse -Force
 
       - name: Upload deploy error log
         if: failure()
