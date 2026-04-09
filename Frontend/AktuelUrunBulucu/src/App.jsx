@@ -160,7 +160,7 @@ export default function App() {
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
       }}>
         <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>
-          Aktüel Ürün Bulucu
+          Bulucu
         </h1>
         {userCoords && (
           <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
