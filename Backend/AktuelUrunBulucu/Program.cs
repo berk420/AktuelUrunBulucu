@@ -22,6 +22,7 @@ builder.Services.AddScoped<INotificationRequestRepository, NotificationRequestRe
 // Services
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<IMailService, MailService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -70,5 +71,6 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.MapSearchEndpoints();
 app.MapLocationEndpoints();
 app.MapNotificationEndpoints();
+app.MapRecommendationEndpoints();
 
 app.Run();

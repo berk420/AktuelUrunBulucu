@@ -13,6 +13,9 @@ public class ProductRepository : IProductRepository
         _db = db;
     }
 
+    /// <summary>
+    /// Ürün adına göre tam veya kısmi eşleşme ile arama yapar.
+    /// </summary>
     public async Task<List<Product>> SearchAsync(string query)
     {
         var lower = query.ToLower();
@@ -26,6 +29,17 @@ public class ProductRepository : IProductRepository
 
         return await _db.Products
             .Where(p => p.Name.ToLower().Contains(lower))
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Kategori alanında verilen anahtar kelimeyi içeren ürünleri döner.
+    /// </summary>
+    public async Task<List<Product>> GetByCategoryKeywordAsync(string keyword)
+    {
+        var lower = keyword.ToLower();
+        return await _db.Products
+            .Where(p => p.Category.ToLower().Contains(lower))
             .ToListAsync();
     }
 }
