@@ -5,6 +5,8 @@ import SearchBar from './components/SearchBar'
 import Map from './components/Map'
 import StoreList from './components/StoreList'
 import NotFoundMessage from './components/NotFoundMessage'
+import InterestsPage from './pages/InterestsPage'
+import RecommendationsPage from './pages/RecommendationsPage'
 import { searchProducts, getUserIp, saveUserLocation, subscribeNotification } from './api/searchApi'
 import { fetchOsmStores } from './api/overpassApi'
 import { haversineKm } from './utils/distance'
@@ -24,7 +26,14 @@ const MOBILE_BREAKPOINT = 768
 const PANEL_WIDTH = 300
 const SWIPE_CLOSE_THRESHOLD = 0.4
 
+const NAV_ITEMS = [
+  { key: 'home', label: 'Ürün Ara' },
+  { key: 'interests', label: 'İlgi Alanlarım' },
+  { key: 'recommendations', label: 'Öneriler' },
+]
+
 export default function App() {
+  const [page, setPage] = useState('home')
   const [query, setQuery] = useState('')
   const [osmStores, setOsmStores] = useState([])
   const [userCoords, setUserCoords] = useState(null)
@@ -159,85 +168,125 @@ export default function App() {
         padding: '16px 24px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
       }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>
-          Aktüel Bulucu
-        </h1>
-        {userCoords && (
-          <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
-            Konumunuz alındı — {MAX_RADIUS_KM} km çapındaki marketler gösteriliyor
-          </div>
-        )}
-        <SearchBar
-          query={query}
-          onQueryChange={setQuery}
-          onSearch={handleSearch}
-          loading={loading}
-        />
-        {loading && (
-          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Loader size="small" type="converging-spinner" />
-            <span style={{ fontSize: '13px', color: '#6b7280' }}>Ürün aranıyor...</span>
-          </div>
-        )}
-        {staleWarning && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-            marginTop: '8px',
-            padding: '10px 14px',
-            background: '#fffbeb',
-            border: '1px solid #f59e0b',
-            borderRadius: '8px',
-            fontSize: '13px',
-            color: '#92400e',
-          }}>
-            <span>
-              ⚠️ Bu ürünün stoklara giriş tarihi <strong>{STALE_THRESHOLD_DAYS} günden</strong> fazla geçmiş — ürün tükenmiş olabilir.
-            </span>
-            <button
-              onClick={() => setStaleWarning(false)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#92400e', lineHeight: 1 }}
-            >✕</button>
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#111827' }}>
+            Aktüel Bulucu
+          </h1>
+          {/* Navigasyon sekmeleri */}
+          <nav style={{ display: 'flex', gap: '4px' }}>
+            {NAV_ITEMS.map(item => (
+              <button
+                key={item.key}
+                onClick={() => setPage(item.key)}
+                style={{
+                  padding: '6px 14px',
+                  background: page === item.key ? '#374151' : '#f3f4f6',
+                  color: page === item.key ? '#fff' : '#374151',
+                  border: '1px solid',
+                  borderColor: page === item.key ? '#374151' : '#e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: page === item.key ? 700 : 400,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </div>
 
-        {rateLimitWarning && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-            marginTop: '8px',
-            padding: '10px 14px',
-            background: '#fef2f2',
-            border: '1px solid #ef4444',
-            borderRadius: '8px',
-            fontSize: '13px',
-            color: '#991b1b',
-          }}>
-            <span>🛑 Çok fazla arama yaptınız. Biraz dinlenin, 1 dakika sonra tekrar deneyin.</span>
-            <button
-              onClick={() => setRateLimitWarning(false)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#991b1b', lineHeight: 1 }}
-            >✕</button>
-          </div>
+        {page === 'home' && (
+          <>
+            {userCoords && (
+              <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
+                Konumunuz alındı — {MAX_RADIUS_KM} km çapındaki marketler gösteriliyor
+              </div>
+            )}
+            <SearchBar
+              query={query}
+              onQueryChange={setQuery}
+              onSearch={handleSearch}
+              loading={loading}
+            />
+            {loading && (
+              <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Loader size="small" type="converging-spinner" />
+                <span style={{ fontSize: '13px', color: '#6b7280' }}>Ürün aranıyor...</span>
+              </div>
+            )}
+            {staleWarning && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                marginTop: '8px',
+                padding: '10px 14px',
+                background: '#fffbeb',
+                border: '1px solid #f59e0b',
+                borderRadius: '8px',
+                fontSize: '13px',
+                color: '#92400e',
+              }}>
+                <span>
+                  ⚠️ Bu ürünün stoklara giriş tarihi <strong>{STALE_THRESHOLD_DAYS} günden</strong> fazla geçmiş — ürün tükenmiş olabilir.
+                </span>
+                <button
+                  onClick={() => setStaleWarning(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#92400e', lineHeight: 1 }}
+                >✕</button>
+              </div>
+            )}
+            {rateLimitWarning && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                marginTop: '8px',
+                padding: '10px 14px',
+                background: '#fef2f2',
+                border: '1px solid #ef4444',
+                borderRadius: '8px',
+                fontSize: '13px',
+                color: '#991b1b',
+              }}>
+                <span>🛑 Çok fazla arama yaptınız. Biraz dinlenin, 1 dakika sonra tekrar deneyin.</span>
+                <button
+                  onClick={() => setRateLimitWarning(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#991b1b', lineHeight: 1 }}
+                >✕</button>
+              </div>
+            )}
+            <NotFoundMessage
+              visible={notFound}
+              searchedProduct={lastQuery}
+              onClose={() => setNotFound(false)}
+              onSubscribe={async (email) => {
+                const ip = await getUserIp()
+                await subscribeNotification(ip, email, lastQuery)
+              }}
+            />
+          </>
         )}
-
-        <NotFoundMessage
-          visible={notFound}
-          searchedProduct={lastQuery}
-          onClose={() => setNotFound(false)}
-          onSubscribe={async (email) => {
-            const ip = await getUserIp()
-            await subscribeNotification(ip, email, lastQuery)
-          }}
-        />
       </div>
 
       {/* Body */}
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+      {page === 'interests' && (
+        <div style={{ flex: 1, overflowY: 'auto', background: '#f9fafb' }}>
+          <InterestsPage onNavigate={setPage} />
+        </div>
+      )}
+
+      {page === 'recommendations' && (
+        <div style={{ flex: 1, overflowY: 'auto', background: '#f9fafb' }}>
+          <RecommendationsPage onNavigate={setPage} />
+        </div>
+      )}
+
+      {page === 'home' && <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
         <div style={{ flex: 1, position: 'relative' }}>
           {osmLoading ? (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexDirection: 'column', gap: '12px' }}>
@@ -394,7 +443,7 @@ export default function App() {
             )}
           </>
         )}
-      </div>
+      </div>}
     </div>
   )
 }
