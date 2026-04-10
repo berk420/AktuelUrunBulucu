@@ -13,4 +13,9 @@ public interface IProductRepository
     /// Kategori alanında verilen anahtar kelimeyi içeren ürünleri döner.
     /// </summary>
     Task<List<Product>> GetByCategoryKeywordAsync(string keyword);
+
+    /// <summary>
+    /// Veritabanındaki tüm ürünleri döner.
+    /// </summary>
+    Task<List<Product>> GetAllAsync();
 }
