@@ -27,9 +27,9 @@ const PANEL_WIDTH = 300
 const SWIPE_CLOSE_THRESHOLD = 0.4
 
 const NAV_ITEMS = [
-  { key: 'home',       label: 'Ürün Ara',        icon: '🔍' },
-  { key: 'interests',  label: 'İlgi Alanlarım',  icon: '❤️' },
-  { key: 'discounted', label: 'Öneriler',         icon: '🏷️' },
+  { key: 'home',       label: 'Ürün Ara' },
+  { key: 'interests',  label: 'İlgi Alanlarım' },
+  { key: 'discounted', label: 'Öneriler' },
 ]
 
 export default function App() {
@@ -192,7 +192,6 @@ export default function App() {
                 transition: 'color 0.15s, border-color 0.15s',
               }}
             >
-              <span style={{ fontSize: '18px', lineHeight: 1 }}>{item.icon}</span>
               <span>{item.label}</span>
             </button>
           ))}
