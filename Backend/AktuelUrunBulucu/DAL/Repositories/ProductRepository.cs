@@ -42,4 +42,12 @@ public class ProductRepository : IProductRepository
             .Where(p => p.Category.ToLower().Contains(lower))
             .ToListAsync();
     }
+
+    /// <summary>
+    /// Veritabanındaki tüm ürünleri döner.
+    /// </summary>
+    public async Task<List<Product>> GetAllAsync()
+    {
+        return await _db.Products.OrderBy(p => p.StoreName).ThenBy(p => p.Name).ToListAsync();
+    }
 }

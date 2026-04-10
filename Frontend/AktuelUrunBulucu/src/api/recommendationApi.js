@@ -7,3 +7,9 @@ export async function getRecommendations(interests) {
   if (!res.ok) throw new Error('API hatası')
   return res.json()
 }
+
+export async function getDiscountedProducts() {
+  const res = await fetch(`${API_URL}/api/products`)
+  if (!res.ok) throw new Error('API hatası')
+  return res.json()
+}

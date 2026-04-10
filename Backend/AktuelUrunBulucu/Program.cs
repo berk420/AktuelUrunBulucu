@@ -72,5 +72,6 @@ app.MapSearchEndpoints();
 app.MapLocationEndpoints();
 app.MapNotificationEndpoints();
 app.MapRecommendationEndpoints();
+app.MapProductsEndpoints();
 
 app.Run();

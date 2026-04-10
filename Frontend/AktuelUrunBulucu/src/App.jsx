@@ -6,7 +6,7 @@ import Map from './components/Map'
 import StoreList from './components/StoreList'
 import NotFoundMessage from './components/NotFoundMessage'
 import InterestsPage from './pages/InterestsPage'
-import RecommendationsPage from './pages/RecommendationsPage'
+import DiscountedProductsPage from './pages/DiscountedProductsPage'
 import { searchProducts, getUserIp, saveUserLocation, subscribeNotification } from './api/searchApi'
 import { fetchOsmStores } from './api/overpassApi'
 import { haversineKm } from './utils/distance'
@@ -27,9 +27,9 @@ const PANEL_WIDTH = 300
 const SWIPE_CLOSE_THRESHOLD = 0.4
 
 const NAV_ITEMS = [
-  { key: 'home', label: 'Ürün Ara' },
-  { key: 'interests', label: 'İlgi Alanlarım' },
-  { key: 'recommendations', label: 'Öneriler' },
+  { key: 'home',       label: 'Ürün Ara',        icon: '🔍' },
+  { key: 'interests',  label: 'İlgi Alanlarım',  icon: '❤️' },
+  { key: 'discounted', label: 'Öneriler',         icon: '🏷️' },
 ]
 
 export default function App() {
@@ -75,26 +75,20 @@ export default function App() {
 
   const handleTouchMove = useCallback((e) => {
     const delta = e.touches[0].clientX - dragStartX.current
-    if (delta > 0) {
-      setDragX(delta)
-    }
+    if (delta > 0) setDragX(delta)
   }, [])
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false)
-    if (dragX > PANEL_WIDTH * SWIPE_CLOSE_THRESHOLD) {
-      setPanelOpen(false)
-    }
+    if (dragX > PANEL_WIDTH * SWIPE_CLOSE_THRESHOLD) setPanelOpen(false)
     setDragX(0)
   }, [dragX])
 
   useEffect(() => {
-    // Konum al ve kaydet
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async position => {
         const { latitude, longitude } = position.coords
         setUserCoords({ latitude, longitude })
-
         try {
           const ip = await getUserIp()
           await saveUserLocation(ip, latitude, longitude)
@@ -103,15 +97,12 @@ export default function App() {
         }
       })
     }
-
-    // OSM marketleri yükle
     fetchOsmStores()
       .then(stores => setOsmStores(stores))
       .catch(err => console.error('OSM yüklenemedi:', err))
       .finally(() => setOsmLoading(false))
   }, [])
 
-  // Kullanıcı konumuna göre 10km içindeki OSM marketleri
   const nearbyOsmStores = userCoords
     ? osmStores.filter(s =>
         haversineKm(userCoords.latitude, userCoords.longitude, s.lat, s.lon) <= MAX_RADIUS_KM
@@ -120,7 +111,6 @@ export default function App() {
 
   async function handleSearch() {
     if (!query.trim()) return
-
     const now = Date.now()
     if (now - windowStartRef.current > RATE_LIMIT_WINDOW_MS) {
       windowStartRef.current = now
@@ -131,18 +121,15 @@ export default function App() {
       setRateLimitWarning(true)
       return
     }
-
     setLoading(true)
     setNotFound(false)
     setMatchedProducts([])
     setStaleWarning(false)
     setRateLimitWarning(false)
     setSearchPerformed(true)
-
     try {
       const ip = await getUserIp()
       const result = await searchProducts(query.trim(), ip)
-
       if (result.found) {
         setMatchedProducts(result.matchedProducts)
         setStaleWarning(result.matchedProducts.some(p => isStale(p.productBringDate)))
@@ -161,44 +148,59 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      {/* Header */}
+      {/* ── HEADER ────────────────────────────────────────────── */}
       <div style={{
         background: '#fff',
         borderBottom: '1px solid #e5e7eb',
-        padding: '16px 24px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-          <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#111827' }}>
+        {/* Başlık */}
+        <div style={{ padding: '14px 24px 0' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#111827', margin: 0 }}>
             Aktüel Bulucu
           </h1>
-          {/* Navigasyon sekmeleri */}
-          <nav style={{ display: 'flex', gap: '4px' }}>
-            {NAV_ITEMS.map(item => (
-              <button
-                key={item.key}
-                onClick={() => setPage(item.key)}
-                style={{
-                  padding: '6px 14px',
-                  background: page === item.key ? '#374151' : '#f3f4f6',
-                  color: page === item.key ? '#fff' : '#374151',
-                  border: '1px solid',
-                  borderColor: page === item.key ? '#374151' : '#e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '13px',
-                  fontWeight: page === item.key ? 700 : 400,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </nav>
+          <p style={{ fontSize: '12px', color: '#9ca3af', margin: '2px 0 0' }}>
+            Marketlerdeki kampanyalı aktüel ürünleri keşfet
+          </p>
         </div>
 
+        {/* Sekme navigasyonu */}
+        <div style={{
+          display: 'flex',
+          gap: '0',
+          marginTop: '12px',
+          borderTop: '1px solid #f3f4f6',
+        }}>
+          {NAV_ITEMS.map(item => (
+            <button
+              key={item.key}
+              onClick={() => setPage(item.key)}
+              style={{
+                flex: 1,
+                padding: '12px 8px',
+                background: 'none',
+                border: 'none',
+                borderBottom: page === item.key ? '3px solid #374151' : '3px solid transparent',
+                color: page === item.key ? '#111827' : '#6b7280',
+                fontSize: '13px',
+                fontWeight: page === item.key ? 700 : 400,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '3px',
+                transition: 'color 0.15s, border-color 0.15s',
+              }}
+            >
+              <span style={{ fontSize: '18px', lineHeight: 1 }}>{item.icon}</span>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Ürün Ara sekmesi içeriği (arama kutusu + uyarılar) */}
         {page === 'home' && (
-          <>
+          <div style={{ padding: '12px 24px 16px' }}>
             {userCoords && (
               <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
                 Konumunuz alındı — {MAX_RADIUS_KM} km çapındaki marketler gösteriliyor
@@ -218,46 +220,28 @@ export default function App() {
             )}
             {staleWarning && (
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '8px',
-                marginTop: '8px',
-                padding: '10px 14px',
-                background: '#fffbeb',
-                border: '1px solid #f59e0b',
-                borderRadius: '8px',
-                fontSize: '13px',
-                color: '#92400e',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: '8px', marginTop: '8px', padding: '10px 14px',
+                background: '#fffbeb', border: '1px solid #f59e0b',
+                borderRadius: '8px', fontSize: '13px', color: '#92400e',
               }}>
                 <span>
                   ⚠️ Bu ürünün stoklara giriş tarihi <strong>{STALE_THRESHOLD_DAYS} günden</strong> fazla geçmiş — ürün tükenmiş olabilir.
                 </span>
-                <button
-                  onClick={() => setStaleWarning(false)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#92400e', lineHeight: 1 }}
-                >✕</button>
+                <button onClick={() => setStaleWarning(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#92400e', lineHeight: 1 }}>✕</button>
               </div>
             )}
             {rateLimitWarning && (
               <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '8px',
-                marginTop: '8px',
-                padding: '10px 14px',
-                background: '#fef2f2',
-                border: '1px solid #ef4444',
-                borderRadius: '8px',
-                fontSize: '13px',
-                color: '#991b1b',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: '8px', marginTop: '8px', padding: '10px 14px',
+                background: '#fef2f2', border: '1px solid #ef4444',
+                borderRadius: '8px', fontSize: '13px', color: '#991b1b',
               }}>
                 <span>🛑 Çok fazla arama yaptınız. Biraz dinlenin, 1 dakika sonra tekrar deneyin.</span>
-                <button
-                  onClick={() => setRateLimitWarning(false)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#991b1b', lineHeight: 1 }}
-                >✕</button>
+                <button onClick={() => setRateLimitWarning(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#991b1b', lineHeight: 1 }}>✕</button>
               </div>
             )}
             <NotFoundMessage
@@ -269,181 +253,117 @@ export default function App() {
                 await subscribeNotification(ip, email, lastQuery)
               }}
             />
-          </>
+          </div>
         )}
       </div>
 
-      {/* Body */}
+      {/* ── BODY ──────────────────────────────────────────────── */}
+
       {page === 'interests' && (
         <div style={{ flex: 1, overflowY: 'auto', background: '#f9fafb' }}>
-          <InterestsPage onNavigate={setPage} />
+          <InterestsPage />
         </div>
       )}
 
-      {page === 'recommendations' && (
+      {page === 'discounted' && (
         <div style={{ flex: 1, overflowY: 'auto', background: '#f9fafb' }}>
-          <RecommendationsPage onNavigate={setPage} />
+          <DiscountedProductsPage />
         </div>
       )}
 
-      {page === 'home' && <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
-        <div style={{ flex: 1, position: 'relative' }}>
-          {osmLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexDirection: 'column', gap: '12px' }}>
-              <Loader size="large" type="converging-spinner" />
-              <span style={{ fontSize: '13px', color: '#6b7280' }}>OpenStreetMap'den marketler yükleniyor...</span>
-            </div>
-          ) : (
-            <Map
-              osmStores={nearbyOsmStores}
-              matchedStoreNames={matchedStoreNames}
-              userCoords={userCoords}
-              searchPerformed={searchPerformed}
-              selectedProduct={selectedProduct}
-            />
-          )}
-        </div>
-
-        {matchedProducts.length > 0 && !isMobile && (
-          <div style={{
-            width: '340px',
-            overflowY: 'auto',
-            padding: '16px',
-            background: '#f9fafb',
-            borderLeft: '1px solid #e5e7eb'
-          }}>
-            <StoreList
-              products={matchedProducts}
-              selectedProduct={selectedProduct}
-              onProductClick={setSelectedProduct}
-            />
+      {page === 'home' && (
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+          <div style={{ flex: 1, position: 'relative' }}>
+            {osmLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexDirection: 'column', gap: '12px' }}>
+                <Loader size="large" type="converging-spinner" />
+                <span style={{ fontSize: '13px', color: '#6b7280' }}>OpenStreetMap'den marketler yükleniyor...</span>
+              </div>
+            ) : (
+              <Map
+                osmStores={nearbyOsmStores}
+                matchedStoreNames={matchedStoreNames}
+                userCoords={userCoords}
+                searchPerformed={searchPerformed}
+                selectedProduct={selectedProduct}
+              />
+            )}
           </div>
-        )}
 
-        {/* Mobil: sürüklenebilir panel */}
-        {matchedProducts.length > 0 && isMobile && (
-          <>
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                right: 0,
-                bottom: 0,
-                width: `${PANEL_WIDTH}px`,
-                background: '#f9fafb',
-                borderLeft: '1px solid #e5e7eb',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-                zIndex: 500,
-                transform: panelOpen
-                  ? `translateX(${dragX}px)`
-                  : `translateX(${PANEL_WIDTH}px)`,
+          {matchedProducts.length > 0 && !isMobile && (
+            <div style={{ width: '340px', overflowY: 'auto', padding: '16px', background: '#f9fafb', borderLeft: '1px solid #e5e7eb' }}>
+              <StoreList
+                products={matchedProducts}
+                selectedProduct={selectedProduct}
+                onProductClick={setSelectedProduct}
+              />
+            </div>
+          )}
+
+          {/* Mobil: sürüklenebilir panel */}
+          {matchedProducts.length > 0 && isMobile && (
+            <>
+              <div style={{
+                position: 'absolute', top: 0, right: 0, bottom: 0,
+                width: `${PANEL_WIDTH}px`, background: '#f9fafb',
+                borderLeft: '1px solid #e5e7eb', display: 'flex',
+                flexDirection: 'column', overflow: 'hidden', zIndex: 500,
+                transform: panelOpen ? `translateX(${dragX}px)` : `translateX(${PANEL_WIDTH}px)`,
                 transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 boxShadow: '-4px 0 16px rgba(0,0,0,0.12)',
-              }}
-            >
-              {/* Sürükleme kolu — touch event'ler SADECE burada */}
-              <div
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                style={{
-                  position: 'absolute',
-                  left: '-48px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: '#374151',
-                  color: '#fff',
-                  width: '48px',
-                  padding: '24px 0',
-                  borderRadius: '12px 0 0 12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '6px',
-                  cursor: 'grab',
-                  touchAction: 'none',
-                  userSelect: 'none',
-                  boxShadow: '-2px 0 8px rgba(0,0,0,0.2)',
-                }}>
-                <span style={{ fontSize: '20px', lineHeight: 1 }}>›</span>
-                <span style={{ fontSize: '9px', writingMode: 'vertical-rl', letterSpacing: '0.5px', opacity: 0.8 }}>KAPAT</span>
-              </div>
-
-              {/* Panel başlık — X butonu */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 16px',
-                borderBottom: '1px solid #e5e7eb',
-                background: '#fff',
-                flexShrink: 0,
               }}>
-                <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>
-                  {matchedProducts.length} sonuç bulundu
-                </span>
-                <button
-                  onClick={() => setPanelOpen(false)}
+                <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
                   style={{
-                    background: '#374151',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '50%',
-                    width: '28px',
-                    height: '28px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: 1,
-                    flexShrink: 0,
-                  }}
-                >✕</button>
+                    position: 'absolute', left: '-48px', top: '50%',
+                    transform: 'translateY(-50%)', background: '#374151', color: '#fff',
+                    width: '48px', padding: '24px 0', borderRadius: '12px 0 0 12px',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    gap: '6px', cursor: 'grab', touchAction: 'none', userSelect: 'none',
+                    boxShadow: '-2px 0 8px rgba(0,0,0,0.2)',
+                  }}>
+                  <span style={{ fontSize: '20px', lineHeight: 1 }}>›</span>
+                  <span style={{ fontSize: '9px', writingMode: 'vertical-rl', letterSpacing: '0.5px', opacity: 0.8 }}>KAPAT</span>
+                </div>
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '12px 16px', borderBottom: '1px solid #e5e7eb',
+                  background: '#fff', flexShrink: 0,
+                }}>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>
+                    {matchedProducts.length} sonuç bulundu
+                  </span>
+                  <button onClick={() => setPanelOpen(false)} style={{
+                    background: '#374151', color: '#fff', border: 'none',
+                    borderRadius: '50%', width: '28px', height: '28px',
+                    fontSize: '14px', cursor: 'pointer', display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', lineHeight: 1, flexShrink: 0,
+                  }}>✕</button>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+                  <StoreList
+                    products={matchedProducts}
+                    selectedProduct={selectedProduct}
+                    onProductClick={setSelectedProduct}
+                  />
+                </div>
               </div>
-
-              {/* Kaydırılabilir içerik */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
-                <StoreList
-                  products={matchedProducts}
-                  selectedProduct={selectedProduct}
-                  onProductClick={setSelectedProduct}
-                />
-              </div>
-            </div>
-
-            {/* Paneli yeniden açma butonu (panel kapalıyken görünür) */}
-            {!panelOpen && (
-              <button
-                onClick={() => setPanelOpen(true)}
-                style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: '#374151',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '16px 10px',
-                  borderRadius: '10px 0 0 10px',
-                  cursor: 'pointer',
-                  zIndex: 501,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '4px',
-                  boxShadow: '-2px 0 8px rgba(0,0,0,0.2)',
-                }}
-              >
-                <span style={{ fontSize: '18px', lineHeight: 1 }}>‹</span>
-                <span style={{ fontSize: '9px', writingMode: 'vertical-rl', letterSpacing: '0.5px', opacity: 0.8 }}>SONUÇLAR</span>
-              </button>
-            )}
-          </>
-        )}
-      </div>}
+              {!panelOpen && (
+                <button onClick={() => setPanelOpen(true)} style={{
+                  position: 'absolute', right: 0, top: '50%',
+                  transform: 'translateY(-50%)', background: '#374151',
+                  color: '#fff', border: 'none', padding: '16px 10px',
+                  borderRadius: '10px 0 0 10px', cursor: 'pointer', zIndex: 501,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  gap: '4px', boxShadow: '-2px 0 8px rgba(0,0,0,0.2)',
+                }}>
+                  <span style={{ fontSize: '18px', lineHeight: 1 }}>‹</span>
+                  <span style={{ fontSize: '9px', writingMode: 'vertical-rl', letterSpacing: '0.5px', opacity: 0.8 }}>SONUÇLAR</span>
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }
