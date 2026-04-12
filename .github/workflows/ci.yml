@@ -186,6 +186,28 @@ jobs:
             --output C:\deploy\backend-new `
             2>&1 | Tee-Object -FilePath C:\deploy\deploy-error.log
 
+      - name: Ensure PostgreSQL user and database exist
+        shell: powershell
+        env:
+          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: |
+          $psql = "C:\Program Files\PostgreSQL\18\bin\psql.exe"
+          $userExists = & $psql -U postgres -h 127.0.0.1 -p 5432 -tAc "SELECT 1 FROM pg_roles WHERE rolname='aktuel_user';"
+          if ($userExists -ne "1") {
+            Write-Host "aktuel_user bulunamadi, olusturuluyor..."
+            & $psql -U postgres -h 127.0.0.1 -p 5432 -c "CREATE USER aktuel_user WITH PASSWORD 'aktuel_pass123';"
+          } else {
+            Write-Host "aktuel_user mevcut, sifre guncelleniyor..."
+            & $psql -U postgres -h 127.0.0.1 -p 5432 -c "ALTER USER aktuel_user WITH PASSWORD 'aktuel_pass123';"
+          }
+          $dbExists = & $psql -U postgres -h 127.0.0.1 -p 5432 -tAc "SELECT 1 FROM pg_database WHERE datname='aktueldb';"
+          if ($dbExists -ne "1") {
+            Write-Host "aktueldb bulunamadi, olusturuluyor..."
+            & $psql -U postgres -h 127.0.0.1 -p 5432 -c "CREATE DATABASE aktueldb OWNER aktuel_user;"
+          }
+          & $psql -U postgres -h 127.0.0.1 -p 5432 -c "GRANT ALL PRIVILEGES ON DATABASE aktueldb TO aktuel_user;"
+          Write-Host "PostgreSQL kurulumu tamamlandi."
+
       - name: Swap backend and restart service
         shell: powershell
         run: |
@@ -196,7 +218,11 @@ jobs:
           Rename-Item "C:\deploy\backend-new" "C:\deploy\backend"
           $svc = Get-Service -Name "AktuelUrunBulucu" -ErrorAction SilentlyContinue
           if (-not $svc) {
-            New-Service -Name "AktuelUrunBulucu" -BinaryPathName "C:\deploy\backend\AktuelUrunBulucu.exe" -DisplayName "AktuelUrunBulucu" -StartupType Automatic
+            New-Service -Name "AktuelUrunBulucu" `
+              -BinaryPathName "C:\deploy\backend\AktuelUrunBulucu.exe" `
+              -DisplayName "AktuelUrunBulucu" `
+              -StartupType Automatic `
+              -DependsOn @("postgresql-x64-18")
           }
           Start-Service AktuelUrunBulucu
 
