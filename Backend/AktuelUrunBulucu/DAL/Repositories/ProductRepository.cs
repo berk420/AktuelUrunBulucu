@@ -14,21 +14,21 @@ public class ProductRepository : IProductRepository
     }
 
     /// <summary>
-    /// Ürün adına göre tam veya kısmi eşleşme ile arama yapar.
+    /// Ürün adı veya mağaza adına göre tam veya kısmi eşleşme ile arama yapar.
     /// </summary>
     public async Task<List<Product>> SearchAsync(string query)
     {
         var lower = query.ToLower();
 
         var exact = await _db.Products
-            .Where(p => p.Name.ToLower() == lower)
+            .Where(p => p.Name.ToLower() == lower || p.StoreName.ToLower() == lower)
             .ToListAsync();
 
         if (exact.Count > 0)
             return exact;
 
         return await _db.Products
-            .Where(p => p.Name.ToLower().Contains(lower))
+            .Where(p => p.Name.ToLower().Contains(lower) || p.StoreName.ToLower().Contains(lower))
             .ToListAsync();
     }
 
