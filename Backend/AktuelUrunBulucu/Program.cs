@@ -75,6 +75,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+<<<<<<< Updated upstream
 // Global exception handler — tüm işlenmeyen hataları yakalar ve JSON olarak döner
 app.UseExceptionHandler(errorApp =>
 {
@@ -104,6 +105,19 @@ app.UseExceptionHandler(errorApp =>
 
         await context.Response.WriteAsJsonAsync(response);
     });
+=======
+app.UseDefaultFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        if (ctx.File.Name.Equals("index.html", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+            ctx.Context.Response.Headers["Pragma"] = "no-cache";
+        }
+    }
+>>>>>>> Stashed changes
 });
 
 app.UseSwagger();

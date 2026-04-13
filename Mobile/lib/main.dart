@@ -6,7 +6,7 @@ import 'screens/discounted_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
+  // MobileAds.instance.initialize(); // emülatörde devre dışı
   runApp(const AktuelApp());
 }
 
