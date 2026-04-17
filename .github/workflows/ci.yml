@@ -192,20 +192,20 @@ jobs:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
           $psql = "C:\Program Files\PostgreSQL\18\bin\psql.exe"
-          $userExists = & $psql -U postgres -h 127.0.0.1 -p 5432 -tAc "SELECT 1 FROM pg_roles WHERE rolname='aktuel_user';"
+          $userExists = & $psql -U postgres -h 127.0.0.1 -p 5433 -tAc "SELECT 1 FROM pg_roles WHERE rolname='aktuel_user';"
           if ($userExists -ne "1") {
             Write-Host "aktuel_user bulunamadi, olusturuluyor..."
-            & $psql -U postgres -h 127.0.0.1 -p 5432 -c "CREATE USER aktuel_user WITH PASSWORD 'aktuel_pass123';"
+            & $psql -U postgres -h 127.0.0.1 -p 5433 -c "CREATE USER aktuel_user WITH PASSWORD 'aktuel_pass123';"
           } else {
             Write-Host "aktuel_user mevcut, sifre guncelleniyor..."
-            & $psql -U postgres -h 127.0.0.1 -p 5432 -c "ALTER USER aktuel_user WITH PASSWORD 'aktuel_pass123';"
+            & $psql -U postgres -h 127.0.0.1 -p 5433 -c "ALTER USER aktuel_user WITH PASSWORD 'aktuel_pass123';"
           }
-          $dbExists = & $psql -U postgres -h 127.0.0.1 -p 5432 -tAc "SELECT 1 FROM pg_database WHERE datname='aktueldb';"
+          $dbExists = & $psql -U postgres -h 127.0.0.1 -p 5433 -tAc "SELECT 1 FROM pg_database WHERE datname='aktueldb';"
           if ($dbExists -ne "1") {
             Write-Host "aktueldb bulunamadi, olusturuluyor..."
-            & $psql -U postgres -h 127.0.0.1 -p 5432 -c "CREATE DATABASE aktueldb OWNER aktuel_user;"
+            & $psql -U postgres -h 127.0.0.1 -p 5433 -c "CREATE DATABASE aktueldb OWNER aktuel_user;"
           }
-          & $psql -U postgres -h 127.0.0.1 -p 5432 -c "GRANT ALL PRIVILEGES ON DATABASE aktueldb TO aktuel_user;"
+          & $psql -U postgres -h 127.0.0.1 -p 5433 -c "GRANT ALL PRIVILEGES ON DATABASE aktueldb TO aktuel_user;"
           Write-Host "PostgreSQL kurulumu tamamlandi."
 
       - name: Swap backend and restart service
