@@ -2,7 +2,6 @@ using AktuelUrunBulucu.BLL.Services;
 using AktuelUrunBulucu.DAL.Context;
 using AktuelUrunBulucu.DAL.Repositories;
 using AktuelUrunBulucu.Endpoints;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
@@ -75,37 +74,9 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-<<<<<<< Updated upstream
-// Global exception handler — tüm işlenmeyen hataları yakalar ve JSON olarak döner
-app.UseExceptionHandler(errorApp =>
-{
-    errorApp.Run(async context =>
-    {
-        var feature = context.Features.Get<IExceptionHandlerPathFeature>();
-        var exception = feature?.Error;
-        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+// CORS — en dışta olmalı ki hata yanıtlarına da header eklenir
+app.UseCors();
 
-        logger.LogError(exception,
-            "İşlenmeyen hata. Method={Method} Path={Path} QueryString={QueryString}",
-            context.Request.Method,
-            feature?.Path ?? context.Request.Path,
-            context.Request.QueryString);
-
-        context.Response.StatusCode = 500;
-        context.Response.ContentType = "application/json";
-
-        var response = new
-        {
-            error = "Sunucu hatası",
-            message = exception?.Message,
-            exceptionType = exception?.GetType().Name,
-            innerMessage = exception?.InnerException?.Message,
-            stackTrace = app.Environment.IsDevelopment() ? exception?.StackTrace : null
-        };
-
-        await context.Response.WriteAsJsonAsync(response);
-    });
-=======
 app.UseDefaultFiles();
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -117,12 +88,10 @@ app.UseStaticFiles(new StaticFileOptions
             ctx.Context.Response.Headers["Pragma"] = "no-cache";
         }
     }
->>>>>>> Stashed changes
 });
 
 app.UseSwagger();
 app.UseSwaggerUI();
-app.UseCors();
 app.UseRateLimiter();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
