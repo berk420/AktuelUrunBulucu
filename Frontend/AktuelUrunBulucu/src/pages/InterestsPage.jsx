@@ -8,6 +8,10 @@ const STALE_THRESHOLD_DAYS = 7
 const SUGGESTED_INTERESTS = [
   'Spor', 'Kamp', 'Elektronik', 'Bahçe', 'Mobilya',
   'Giyim', 'Çocuk', 'Beyaz Eşya', 'Yaz', 'Bisiklet',
+  'Fitness', 'Yüzme', 'Trekking', 'Piknik', 'Balıkçılık',
+  'Fotoğrafçılık', 'Oyun', 'Mutfak', 'Temizlik', 'Dekorasyon',
+  'Araba', 'Araç Gereç', 'Tamirat', 'Okul', 'Kitap',
+  'Müzik', 'Seyahat', 'Evcil Hayvan', 'Kozmetik', 'Sağlık',
 ]
 
 const CHAIN_COLORS = {
