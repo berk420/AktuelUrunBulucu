@@ -1,4 +1,5 @@
 using AktuelUrunBulucu.BLL.Services;
+using Npgsql;
 
 namespace AktuelUrunBulucu.Endpoints;
 
@@ -24,6 +25,17 @@ public static class SearchEndpoints
                     "Arama tamamlandı. Query={Query} Found={Found} ResultCount={Count}",
                     query, result.Found, result.MatchedProducts.Count);
                 return Results.Ok(result);
+            }
+            catch (NpgsqlException ex)
+            {
+                logger.LogError(ex,
+                    "Veritabanı bağlantı hatası. Query={Query} IP={IP} Message={Message}",
+                    query, ip, ex.Message);
+
+                return Results.Problem(
+                    detail: "Veritabanına bağlanılamadı.",
+                    title: "Bir sorun çıktı",
+                    statusCode: 503);
             }
             catch (Exception ex)
             {

@@ -8,7 +8,20 @@ export async function getUserIp() {
 
 export async function searchProducts(query, ip) {
   const res = await fetch(`${API_URL}/api/search?query=${encodeURIComponent(query)}&ip=${encodeURIComponent(ip)}`)
-  if (!res.ok) throw new Error('API hatası')
+  if (!res.ok) {
+    let title = 'Bir sorun çıktı'
+    let detail = 'Bilinmeyen hata'
+    try {
+      const body = await res.json()
+      if (body.title) title = body.title
+      if (body.detail) detail = body.detail
+    } catch {
+      // JSON parse edilemezse default mesajları kullan
+    }
+    const err = new Error(detail)
+    err.title = title
+    throw err
+  }
   return res.json()
 }
 

@@ -15,20 +15,20 @@ public class ProductRepository : IProductRepository
 
     /// <summary>
     /// Ürün adı veya mağaza adına göre tam veya kısmi eşleşme ile arama yapar.
+    /// PostgreSQL ILIKE kullanılır; Türkçe karakterlerde locale bağımsız çalışır.
     /// </summary>
     public async Task<List<Product>> SearchAsync(string query)
     {
-        var lower = query.ToLower();
-
         var exact = await _db.Products
-            .Where(p => p.Name.ToLower() == lower || p.StoreName.ToLower() == lower)
+            .Where(p => EF.Functions.ILike(p.Name, query) || EF.Functions.ILike(p.StoreName, query))
             .ToListAsync();
 
         if (exact.Count > 0)
             return exact;
 
+        var pattern = $"%{query}%";
         return await _db.Products
-            .Where(p => p.Name.ToLower().Contains(lower) || p.StoreName.ToLower().Contains(lower))
+            .Where(p => EF.Functions.ILike(p.Name, pattern) || EF.Functions.ILike(p.StoreName, pattern))
             .ToListAsync();
     }
 

@@ -45,6 +45,7 @@ export default function App() {
   const [searchPerformed, setSearchPerformed] = useState(false)
   const [staleWarning, setStaleWarning] = useState(false)
   const [rateLimitWarning, setRateLimitWarning] = useState(false)
+  const [searchError, setSearchError] = useState(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT)
   const [panelOpen, setPanelOpen] = useState(true)
   const [dragX, setDragX] = useState(0)
@@ -126,6 +127,7 @@ export default function App() {
     setMatchedProducts([])
     setStaleWarning(false)
     setRateLimitWarning(false)
+    setSearchError(null)
     setSearchPerformed(true)
     try {
       const ip = await getUserIp()
@@ -139,6 +141,7 @@ export default function App() {
       }
     } catch (err) {
       console.error(err)
+      setSearchError({ title: err.title || 'Bir sorun çıktı', detail: err.message || 'Bilinmeyen hata' })
     } finally {
       setLoading(false)
     }
@@ -241,6 +244,21 @@ export default function App() {
                 <span>🛑 Çok fazla arama yaptınız. Biraz dinlenin, 1 dakika sonra tekrar deneyin.</span>
                 <button onClick={() => setRateLimitWarning(false)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#991b1b', lineHeight: 1 }}>✕</button>
+              </div>
+            )}
+            {searchError && (
+              <div style={{
+                display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+                gap: '8px', marginTop: '8px', padding: '10px 14px',
+                background: '#fef2f2', border: '1px solid #ef4444',
+                borderRadius: '8px', fontSize: '13px', color: '#991b1b',
+              }}>
+                <div>
+                  <strong>{searchError.title}</strong>
+                  <div style={{ marginTop: '2px', opacity: 0.85 }}>{searchError.detail}</div>
+                </div>
+                <button onClick={() => setSearchError(null)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#991b1b', lineHeight: 1, flexShrink: 0 }}>✕</button>
               </div>
             )}
             <NotFoundMessage
