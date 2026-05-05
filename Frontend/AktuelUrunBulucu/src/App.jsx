@@ -12,15 +12,8 @@ import { fetchOsmStores } from './api/overpassApi'
 import { haversineKm } from './utils/distance'
 
 const MAX_RADIUS_KM = 10
-const STALE_THRESHOLD_DAYS = 7
 const RATE_LIMIT = 10
 const RATE_LIMIT_WINDOW_MS = 60_000
-
-function isStale(productBringDate) {
-  if (!productBringDate) return false
-  const diffMs = Date.now() - new Date(productBringDate).getTime()
-  return diffMs > STALE_THRESHOLD_DAYS * 24 * 60 * 60 * 1000
-}
 
 const MOBILE_BREAKPOINT = 768
 const PANEL_WIDTH = 300
@@ -43,7 +36,6 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [osmLoading, setOsmLoading] = useState(true)
   const [searchPerformed, setSearchPerformed] = useState(false)
-  const [staleWarning, setStaleWarning] = useState(false)
   const [rateLimitWarning, setRateLimitWarning] = useState(false)
   const [searchError, setSearchError] = useState(null)
   const [isMobile, setIsMobile] = useState(window.innerWidth < MOBILE_BREAKPOINT)
@@ -125,7 +117,6 @@ export default function App() {
     setLoading(true)
     setNotFound(false)
     setMatchedProducts([])
-    setStaleWarning(false)
     setRateLimitWarning(false)
     setSearchError(null)
     setSearchPerformed(true)
@@ -134,7 +125,6 @@ export default function App() {
       const result = await searchProducts(query.trim(), ip)
       if (result.found) {
         setMatchedProducts(result.matchedProducts)
-        setStaleWarning(result.matchedProducts.some(p => isStale(p.productBringDate)))
       } else {
         setNotFound(true)
         setLastQuery(query.trim())
@@ -218,20 +208,6 @@ export default function App() {
               <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Loader size="small" type="converging-spinner" />
                 <span style={{ fontSize: '13px', color: '#6b7280' }}>Ürün aranıyor...</span>
-              </div>
-            )}
-            {staleWarning && (
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                gap: '8px', marginTop: '8px', padding: '10px 14px',
-                background: '#fffbeb', border: '1px solid #f59e0b',
-                borderRadius: '8px', fontSize: '13px', color: '#92400e',
-              }}>
-                <span>
-                  ⚠️ Bu ürünün stoklara giriş tarihi <strong>{STALE_THRESHOLD_DAYS} günden</strong> fazla geçmiş — ürün tükenmiş olabilir.
-                </span>
-                <button onClick={() => setStaleWarning(false)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: '#92400e', lineHeight: 1 }}>✕</button>
               </div>
             )}
             {rateLimitWarning && (
