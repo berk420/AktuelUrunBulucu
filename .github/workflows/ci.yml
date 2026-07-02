@@ -161,100 +161,60 @@ jobs:
             -d "text=📱 <b>APK hazır!</b>%0ACommit: <code>$COMMIT_SHORT</code>%0A%0A<a href=\"$URL\">APK İndir (.apk)</a>"
 
   deploy:
-    name: Deploy to Windows Server
+    name: Deploy to Ubuntu Server
     needs: [build-backend, build-frontend]
-    runs-on: [self-hosted, Windows]
+    runs-on: [self-hosted, Linux]
     if: success()
     steps:
       - uses: actions/checkout@v4
 
-      - name: Backup current backend version
-        shell: powershell
+      - name: Backup current backend image
         run: |
-          if (Test-Path "C:\deploy\backend") {
-            if (Test-Path "C:\deploy\backend-previous") {
-              Remove-Item "C:\deploy\backend-previous" -Recurse -Force
-            }
-            Copy-Item "C:\deploy\backend" "C:\deploy\backend-previous" -Recurse
-          }
+          if docker image inspect aktuel-backend:latest >/dev/null 2>&1; then
+            docker tag aktuel-backend:latest aktuel-backend:previous
+          fi
 
-      - name: Publish backend
-        shell: powershell
+      - name: Build and start backend container
         run: |
-          dotnet publish Backend/AktuelUrunBulucu/AktuelUrunBulucu.csproj `
-            --configuration Release `
-            --output C:\deploy\backend-new `
-            2>&1 | Tee-Object -FilePath C:\deploy\deploy-error.log
+          set -o pipefail
+          docker compose build backend 2>&1 | tee deploy-error.log
+          docker compose up -d backend
 
-      - name: Ensure PostgreSQL user and database exist
-        shell: powershell
-        env:
-          PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      - name: Health check backend
         run: |
-          $psql = "C:\Program Files\PostgreSQL\18\bin\psql.exe"
-          $userExists = & $psql -U postgres -h 127.0.0.1 -p 5433 -tAc "SELECT 1 FROM pg_roles WHERE rolname='aktuel_user';"
-          if ($userExists -ne "1") {
-            Write-Host "aktuel_user bulunamadi, olusturuluyor..."
-            & $psql -U postgres -h 127.0.0.1 -p 5433 -c "CREATE USER aktuel_user WITH PASSWORD 'aktuel_pass123';"
-          } else {
-            Write-Host "aktuel_user mevcut, sifre guncelleniyor..."
-            & $psql -U postgres -h 127.0.0.1 -p 5433 -c "ALTER USER aktuel_user WITH PASSWORD 'aktuel_pass123';"
-          }
-          $dbExists = & $psql -U postgres -h 127.0.0.1 -p 5433 -tAc "SELECT 1 FROM pg_database WHERE datname='aktueldb';"
-          if ($dbExists -ne "1") {
-            Write-Host "aktueldb bulunamadi, olusturuluyor..."
-            & $psql -U postgres -h 127.0.0.1 -p 5433 -c "CREATE DATABASE aktueldb OWNER aktuel_user;"
-          }
-          & $psql -U postgres -h 127.0.0.1 -p 5433 -c "GRANT ALL PRIVILEGES ON DATABASE aktueldb TO aktuel_user;"
-          Write-Host "PostgreSQL kurulumu tamamlandi."
-
-      - name: Swap backend and restart service
-        shell: powershell
-        run: |
-          Stop-Service AktuelUrunBulucu -ErrorAction SilentlyContinue
-          if (Test-Path "C:\deploy\backend") {
-            Remove-Item "C:\deploy\backend" -Recurse -Force
-          }
-          Rename-Item "C:\deploy\backend-new" "C:\deploy\backend"
-          $svc = Get-Service -Name "AktuelUrunBulucu" -ErrorAction SilentlyContinue
-          if (-not $svc) {
-            New-Service -Name "AktuelUrunBulucu" `
-              -BinaryPathName "C:\deploy\backend\AktuelUrunBulucu.exe" `
-              -DisplayName "AktuelUrunBulucu" `
-              -StartupType Automatic `
-              -DependsOn @("postgresql-x64-18")
-          }
-          Start-Service AktuelUrunBulucu
+          for attempt in $(seq 1 10); do
+            if curl -sf http://localhost:5012/health >/dev/null; then
+              echo "Backend sağlıklı."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Health check başarısız." | tee -a deploy-error.log
+          exit 1
 
       - name: Clean previous frontend dist
-        shell: powershell
-        run: |
-          if (Test-Path "C:\deploy\frontend-dist") {
-            Remove-Item "C:\deploy\frontend-dist" -Recurse -Force
-          }
+        run: rm -rf /tmp/frontend-dist && mkdir -p /tmp/frontend-dist
 
       - name: Download frontend build
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: C:\deploy\frontend-dist
+          path: /tmp/frontend-dist
 
-      - name: Deploy frontend to IIS
-        shell: powershell
+      - name: Deploy frontend to Nginx
         run: |
-          $target = "C:\inetpub\wwwroot\AktuelFrontend"
-          if (Test-Path $target) {
-            Remove-Item "$target\*" -Recurse -Force
-          }
-          New-Item -ItemType Directory -Path $target -Force | Out-Null
-          Copy-Item "C:\deploy\frontend-dist\*" "$target\" -Recurse -Force
+          sudo mkdir -p /var/www/aktuelurunbulucu/frontend
+          sudo rm -rf /var/www/aktuelurunbulucu/frontend/*
+          sudo cp -r /tmp/frontend-dist/* /var/www/aktuelurunbulucu/frontend/
+          sudo nginx -t
+          sudo systemctl reload nginx
 
       - name: Upload deploy error log
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: deploy-error-log
-          path: C:\deploy\deploy-error.log
+          path: deploy-error.log
           retention-days: 1
 
   notify:
@@ -276,7 +236,7 @@ jobs:
             echo "artifact=frontend-error-log" >> "$GITHUB_OUTPUT"
           elif [ "${{ needs.deploy.result }}" = "failure" ]; then
             echo "result=failure" >> "$GITHUB_OUTPUT"
-            echo "component=Deploy (Windows Server)" >> "$GITHUB_OUTPUT"
+            echo "component=Deploy (Ubuntu Server)" >> "$GITHUB_OUTPUT"
             echo "artifact=deploy-error-log" >> "$GITHUB_OUTPUT"
           elif [ "${{ needs.build-mobile.result }}" = "failure" ]; then
             echo "result=failure" >> "$GITHUB_OUTPUT"

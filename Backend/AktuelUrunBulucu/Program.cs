@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Host.UseWindowsService();
 
 // DB
 builder.Services.AddDbContext<AppDbContext>(options =>

@@ -23,4 +23,7 @@ public class Product
 
     [Column("product_bring_date")]
     public DateTime? ProductBringDate { get; set; }
+
+    [Column("product_price")]
+    public decimal? ProductPrice { get; set; }
 }

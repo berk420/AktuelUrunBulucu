@@ -1,7 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Mcp__*",
       "Bash(dotnet:*)",
       "Bash(mkdir:*)",
       "Bash(cd:*)",
@@ -12,7 +11,8 @@
       "Bash(flutter --version)",
       "Bash(flutter create:*)",
       "Bash(flutter pub:*)",
-      "Bash(ipconfig)"
+      "Bash(ipconfig)",
+      "Bash(chmod +x scripts/*.sh)"
     ]
   }
 }

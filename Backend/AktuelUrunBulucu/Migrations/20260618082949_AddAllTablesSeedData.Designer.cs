@@ -3,6 +3,7 @@ using System;
 using AktuelUrunBulucu.DAL.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AktuelUrunBulucu.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260618082949_AddAllTablesSeedData")]
+    partial class AddAllTablesSeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -161,10 +164,6 @@ namespace AktuelUrunBulucu.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("product_bring_date");
 
-                    b.Property<decimal?>("ProductPrice")
-                        .HasColumnType("numeric")
-                        .HasColumnName("product_price");
-
                     b.Property<string>("StoreName")
                         .IsRequired()
                         .HasColumnType("text")
@@ -181,7 +180,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Beyaz Eşya",
                             Name = "Çamaşır Makinesi Samsung 8kg",
                             ProductBringDate = new DateTime(2026, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 12999m,
                             StoreName = "Migros"
                         },
                         new
@@ -190,7 +188,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Beyaz Eşya",
                             Name = "Bulaşık Makinesi Arçelik 5 Program",
                             ProductBringDate = new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 9499m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -199,7 +196,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Beyaz Eşya",
                             Name = "Buzdolabı Vestel No-Frost",
                             ProductBringDate = new DateTime(2026, 3, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 15999m,
                             StoreName = "Migros"
                         },
                         new
@@ -208,7 +204,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Küçük Ev Aleti",
                             Name = "Mikrodalga Fırın 20L",
                             ProductBringDate = new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1299m,
                             StoreName = "Şok"
                         },
                         new
@@ -217,7 +212,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Küçük Ev Aleti",
                             Name = "Elektrikli Süpürge Rowenta",
                             ProductBringDate = new DateTime(2026, 3, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 2499m,
                             StoreName = "A101"
                         },
                         new
@@ -226,7 +220,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Küçük Ev Aleti",
                             Name = "Hava Fritözü 5L",
                             ProductBringDate = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1899m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -235,7 +228,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Spor & Outdoor",
                             Name = "Bisiklet 26 Jant Dağ Bisikleti",
                             ProductBringDate = new DateTime(2026, 4, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 4999m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -244,7 +236,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Spor & Outdoor",
                             Name = "Bisiklet Çocuk 20 Jant",
                             ProductBringDate = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 2799m,
                             StoreName = "Migros"
                         },
                         new
@@ -253,7 +244,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Kamp & Outdoor",
                             Name = "Çadır 4 Kişilik Kamp Çadırı",
                             ProductBringDate = new DateTime(2026, 4, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 3499m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -262,7 +252,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Kamp & Outdoor",
                             Name = "Çadır 2 Kişilik Ultra Hafif",
                             ProductBringDate = new DateTime(2026, 4, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 2199m,
                             StoreName = "Migros"
                         },
                         new
@@ -271,7 +260,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Barbekü Izgara Kömürlü Set",
                             ProductBringDate = new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 899m,
                             StoreName = "BİM"
                         },
                         new
@@ -280,7 +268,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Barbekü Izgara Gazlı Taşınabilir",
                             ProductBringDate = new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1499m,
                             StoreName = "A101"
                         },
                         new
@@ -289,7 +276,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Bahçe Hortumu 25m",
                             ProductBringDate = new DateTime(2026, 4, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 349m,
                             StoreName = "BİM"
                         },
                         new
@@ -298,7 +284,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Çim Biçme Makinesi Elektrikli",
                             ProductBringDate = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 2999m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -307,7 +292,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Mobilya & Dekorasyon",
                             Name = "Bahçe Masa Sandalye Seti 4+1",
                             ProductBringDate = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 3799m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -316,7 +300,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Kamp & Outdoor",
                             Name = "Katlanır Kamp Sandalyesi",
                             ProductBringDate = new DateTime(2026, 4, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 299m,
                             StoreName = "Şok"
                         },
                         new
@@ -325,7 +308,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Mobilya & Dekorasyon",
                             Name = "Raf Sistemi Metal 5 Katlı",
                             ProductBringDate = new DateTime(2026, 3, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1199m,
                             StoreName = "A101"
                         },
                         new
@@ -334,7 +316,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Kamp & Outdoor",
                             Name = "Uyku Tulumu -5 Derece",
                             ProductBringDate = new DateTime(2026, 4, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 799m,
                             StoreName = "Şok"
                         },
                         new
@@ -343,7 +324,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Giyim",
                             Name = "Yağmurluk Unisex L Beden",
                             ProductBringDate = new DateTime(2026, 3, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 449m,
                             StoreName = "BİM"
                         },
                         new
@@ -352,7 +332,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Giyim",
                             Name = "Spor Ayakkabı Erkek 42",
                             ProductBringDate = new DateTime(2026, 3, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 999m,
                             StoreName = "Migros"
                         },
                         new
@@ -361,7 +340,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Akıllı Saat Fitness Tracker",
                             ProductBringDate = new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 2299m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -370,7 +348,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Bluetooth Hoparlör Su Geçirmez",
                             ProductBringDate = new DateTime(2026, 3, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 899m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -379,7 +356,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank 20000mAh",
                             ProductBringDate = new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 499m,
                             StoreName = "A101"
                         },
                         new
@@ -388,7 +364,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Çocuk & Oyuncak",
                             Name = "Çocuk Scooter 3 Tekerlekli",
                             ProductBringDate = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 699m,
                             StoreName = "BİM"
                         },
                         new
@@ -397,7 +372,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Çocuk & Oyuncak",
                             Name = "Kaydırak Çocuk Bahçe Seti",
                             ProductBringDate = new DateTime(2026, 4, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1599m,
                             StoreName = "A101"
                         },
                         new
@@ -406,7 +380,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Araç Gereç",
                             Name = "Matkap Seti Akülü 18V",
                             ProductBringDate = new DateTime(2026, 3, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1799m,
                             StoreName = "Şok"
                         },
                         new
@@ -415,7 +388,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "El Arabası Plastik Bahçe",
                             ProductBringDate = new DateTime(2026, 4, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 599m,
                             StoreName = "Şok"
                         },
                         new
@@ -424,7 +396,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Araç Gereç",
                             Name = "Merdiven 5 Basamak Alüminyum",
                             ProductBringDate = new DateTime(2026, 3, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1099m,
                             StoreName = "Migros"
                         },
                         new
@@ -433,7 +404,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Yaz & Havuz",
                             Name = "Şişme Havuz 300x200cm Aile",
                             ProductBringDate = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 2499m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -442,7 +412,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Yaz & Havuz",
                             Name = "Güneş Şemsiyesi 2m UV Korumalı",
                             ProductBringDate = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 799m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -451,7 +420,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Kömürlü Set Takım Çantalı",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 649m,
                             StoreName = "BİM"
                         },
                         new
@@ -460,7 +428,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Büyük Boy Aile Mangalı",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 899m,
                             StoreName = "A101"
                         },
                         new
@@ -469,7 +436,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Portatif Katlanır Kamp Mangalı",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 499m,
                             StoreName = "Migros"
                         },
                         new
@@ -478,7 +444,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Gazlı Taşınabilir 2 Gözlü",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1299m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -487,7 +452,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Elektrikli İç Mekan 2000W",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1099m,
                             StoreName = "Şok"
                         },
                         new
@@ -496,7 +460,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Kömürü 5kg Doğal Meyve Odunu",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 149m,
                             StoreName = "BİM"
                         },
                         new
@@ -505,7 +468,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Kömürü 10kg Premium",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 249m,
                             StoreName = "A101"
                         },
                         new
@@ -514,7 +476,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Ateş Tutuşturucu Jel 500ml",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 79m,
                             StoreName = "Migros"
                         },
                         new
@@ -523,7 +484,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Izgara Teli 40x60cm Paslanmaz",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 199m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -532,7 +492,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Maşa Spatula Set 5 Parça",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 169m,
                             StoreName = "Şok"
                         },
                         new
@@ -541,7 +500,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Eldiveni Isıya Dayanıklı Çift",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 99m,
                             StoreName = "BİM"
                         },
                         new
@@ -550,7 +508,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Izgarası Döküm Demir 50cm",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 349m,
                             StoreName = "A101"
                         },
                         new
@@ -559,7 +516,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Barbekü Sis Şişi 12li Set",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 129m,
                             StoreName = "Migros"
                         },
                         new
@@ -568,7 +524,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Alüminyum Folyo Tepsi 5li",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 59m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -577,7 +532,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Bahçe & Piknik",
                             Name = "Mangal Çantalı Piknik Seti 20 Parça",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 399m,
                             StoreName = "Şok"
                         },
                         new
@@ -586,7 +540,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank 5000mAh Slim Taşınabilir",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 199m,
                             StoreName = "BİM"
                         },
                         new
@@ -595,7 +548,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank 10000mAh Hızlı Şarj 22.5W",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 349m,
                             StoreName = "A101"
                         },
                         new
@@ -604,7 +556,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank 20000mAh Çift USB Çıkış",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 499m,
                             StoreName = "Migros"
                         },
                         new
@@ -613,7 +564,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank 20000mAh PD 65W Laptop",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 899m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -622,7 +572,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank 30000mAh Süper Kapasite",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 699m,
                             StoreName = "Şok"
                         },
                         new
@@ -631,7 +580,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank Kablosuz Şarjlı 15W MagSafe",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 749m,
                             StoreName = "BİM"
                         },
                         new
@@ -640,7 +588,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank Solar Güneş Enerjili 10000mAh",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 599m,
                             StoreName = "A101"
                         },
                         new
@@ -649,7 +596,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank Mini Anahtarlık 1500mAh",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 129m,
                             StoreName = "Migros"
                         },
                         new
@@ -658,7 +604,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank 10000mAh Led Göstergeli",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 299m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -667,7 +612,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Powerbank 25000mAh 4 Portlu Hızlı Şarj",
                             ProductBringDate = new DateTime(2026, 4, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 799m,
                             StoreName = "Şok"
                         },
                         new
@@ -676,7 +620,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Gıda",
                             Name = "Zeytinyağı Riviera 5L Teneke",
                             ProductBringDate = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 849m,
                             StoreName = "BİM"
                         },
                         new
@@ -685,7 +628,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Gıda",
                             Name = "Fındık İç 1kg Giresun",
                             ProductBringDate = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 699m,
                             StoreName = "A101"
                         },
                         new
@@ -694,7 +636,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Gıda",
                             Name = "Bal Süzme Çam Balı 850g",
                             ProductBringDate = new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 549m,
                             StoreName = "Şok"
                         },
                         new
@@ -703,7 +644,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Gıda",
                             Name = "Çay Rize Çayı 3kg Karton Kutu",
                             ProductBringDate = new DateTime(2026, 6, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 399m,
                             StoreName = "Migros"
                         },
                         new
@@ -712,7 +652,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Gıda",
                             Name = "Türk Kahvesi 500g Öğütülmüş",
                             ProductBringDate = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 249m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -721,7 +660,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Kozmetik",
                             Name = "Güneş Kremi SPF50 200ml",
                             ProductBringDate = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 179m,
                             StoreName = "Migros"
                         },
                         new
@@ -730,7 +668,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Kozmetik",
                             Name = "Saç Kurutma Makinesi 2200W İyonik",
                             ProductBringDate = new DateTime(2026, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1299m,
                             StoreName = "A101"
                         },
                         new
@@ -739,7 +676,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Kozmetik",
                             Name = "Epilatör Su Geçirmez Şarjlı",
                             ProductBringDate = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 999m,
                             StoreName = "BİM"
                         },
                         new
@@ -748,7 +684,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Kozmetik",
                             Name = "Parfüm Erkek EDT 100ml",
                             ProductBringDate = new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 599m,
                             StoreName = "Şok"
                         },
                         new
@@ -757,7 +692,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Ev Tekstili",
                             Name = "Nevresim Takımı Çift Kişilik Pamuk",
                             ProductBringDate = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 799m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -766,7 +700,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Ev Tekstili",
                             Name = "Havlu Seti 6lı Banyo Havlusu",
                             ProductBringDate = new DateTime(2026, 6, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 349m,
                             StoreName = "BİM"
                         },
                         new
@@ -775,7 +708,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Ev Tekstili",
                             Name = "Yastık Visco Ortopedik Boyun",
                             ProductBringDate = new DateTime(2026, 6, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 499m,
                             StoreName = "A101"
                         },
                         new
@@ -784,7 +716,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Temizlik",
                             Name = "Çamaşır Deterjanı 10kg Toz",
                             ProductBringDate = new DateTime(2026, 6, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 449m,
                             StoreName = "Şok"
                         },
                         new
@@ -793,7 +724,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Temizlik",
                             Name = "Bulaşık Deterjanı Tablet 72li",
                             ProductBringDate = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 299m,
                             StoreName = "Migros"
                         },
                         new
@@ -802,7 +732,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Küçük Ev Aleti",
                             Name = "Robot Süpürge Akıllı Lazerli",
                             ProductBringDate = new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 8999m,
                             StoreName = "CarrefourSA"
                         },
                         new
@@ -811,7 +740,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Otomotiv",
                             Name = "Araç İçi Telefon Tutucu Manyetik",
                             ProductBringDate = new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 129m,
                             StoreName = "A101"
                         },
                         new
@@ -820,7 +748,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Otomotiv",
                             Name = "Araç Kompresörü 12V Dijital",
                             ProductBringDate = new DateTime(2026, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 599m,
                             StoreName = "BİM"
                         },
                         new
@@ -829,7 +756,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Otomotiv",
                             Name = "Araç Koltuk Kılıfı Deri Universal",
                             ProductBringDate = new DateTime(2026, 6, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 899m,
                             StoreName = "Şok"
                         },
                         new
@@ -838,7 +764,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Tablet Kalem Stylus iPad Uyumlu",
                             ProductBringDate = new DateTime(2026, 6, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 1499m,
                             StoreName = "Migros"
                         },
                         new
@@ -847,7 +772,6 @@ namespace AktuelUrunBulucu.Migrations
                             Category = "Elektronik",
                             Name = "Kulaklık Bluetooth ANC Gürültü Önleyici",
                             ProductBringDate = new DateTime(2026, 6, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ProductPrice = 3499m,
                             StoreName = "CarrefourSA"
                         });
                 });

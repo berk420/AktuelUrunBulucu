@@ -28,5 +28,20 @@ services:
     depends_on:
       - postgres
 
+  backend:
+    build:
+      context: ./Backend/AktuelUrunBulucu
+      dockerfile: Dockerfile
+    image: aktuel-backend:latest
+    container_name: aktuel_backend
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    ports:
+      - "5012:5012"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
