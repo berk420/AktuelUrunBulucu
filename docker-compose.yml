@@ -16,6 +16,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   pgadmin:
     image: dpage/pgadmin4
@@ -27,6 +28,7 @@ services:
       - "8080:80"
     depends_on:
       - postgres
+    restart: unless-stopped
 
   backend:
     build:
@@ -36,11 +38,23 @@ services:
     container_name: aktuel_backend
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://0.0.0.0:5012
     ports:
       - "5012:5012"
     depends_on:
       postgres:
         condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    image: nginx:1.25-alpine
+    container_name: aktuel_frontend
+    volumes:
+      - ./Frontend/AktuelUrunBulucu/dist:/usr/share/nginx/html:ro
+    ports:
+      - "127.0.0.1:8087:80"
+    depends_on:
+      - backend
     restart: unless-stopped
 
 volumes:
